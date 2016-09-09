@@ -1,4 +1,4 @@
-(ns cljs-datagrid.core
+(ns cljs-datagrid.demo
   (:require [reagent.core :as reagent]
             [com.kaicode.datagrid :as data-grid]))
 
