@@ -101,11 +101,6 @@
                           :on-change #(swap! spreadsheet-state update-in [:columns-config i 1 :visible] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
-(defn- scroll-to-bottom [element]
-  ;;postpone execution 16ms to give enough time for ui to render after a state change otherwise the new UI element will not appear
-  (m/postpone #(set! element -scrollTop (. element -scrollHeight))
-              16))
-
 (defn- data-column-headers [spreadsheet-state]
   (doall (for [column-config (-> @spreadsheet-state :columns-config)
                :let [[column-kw config] column-config
