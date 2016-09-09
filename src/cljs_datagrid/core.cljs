@@ -28,9 +28,9 @@
                                      :sort-column      {:none true}
                                      :selected-rows    #{}
                                      :columns-config   [[:person/first-name (merge common-config {:unique           true
-                                                                                                  :render-header-fn (constantly "Name")})]
-                                                        [:person/last-name (merge common-config {:render-header-fn (constantly "Model")})]
-                                                        [:person/email (merge common-config {:render-header-fn (constantly "Price")})]]})]
+                                                                                                  :render-header-fn (constantly "First Name")})]
+                                                        [:person/last-name (merge common-config {:render-header-fn (constantly "Last Name")})]
+                                                        [:person/email (merge common-config {:render-header-fn (constantly "Email")})]]})]
     app-state))
 
 (defonce app-state (init-db))
