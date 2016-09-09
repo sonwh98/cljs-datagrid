@@ -21,7 +21,7 @@
            [:div {:style          {:position         :absolute
                                    :z-index          1
                                    :top              15
-                                   :right 0
+                                   :right            0
                                    :padding          0
                                    :margin           0
                                    :opacity          1.0
@@ -166,20 +166,21 @@
                                     y      (- y (. rect -top))
                                     delete [:a {:href     "#"
                                                 :on-click (fn [evt]
-                                                            (let [current-rows  (:rows @spreadsheet-state)
-                                                                  index-row     (tily/with-index current-rows)
-                                                                  new-rows      (->> index-row
-                                                                                     (remove (fn [[index row]]
-                                                                                               (tily/is-contained? index :in @selected-rows)))
-                                                                                     (map #(second %))
-                                                                                     vec)
-                                                                  delete-ids    (->> index-row
-                                                                                     (filter (fn [[index row]]
-                                                                                               (tily/is-contained? index :in @selected-rows)))
-                                                                                     (map #(-> % second :system/id)))
-                                                                  delete-row-fn (:delete-row-fn @spreadsheet-state)]
-                                                              (doseq [sys-id delete-ids]
-                                                                (delete-row-fn sys-id))
+                                                            (let [current-rows   (:rows @spreadsheet-state)
+                                                                  index-row      (tily/with-index current-rows)
+                                                                  new-rows       (->> index-row
+                                                                                      (remove (fn [[index row]]
+                                                                                                (tily/is-contained? index :in @selected-rows)))
+                                                                                      (map #(second %))
+                                                                                      vec)
+                                                                  rows-to-delete (->> index-row
+                                                                                      (filter (fn [[index row]]
+                                                                                                (tily/is-contained? index :in @selected-rows)))
+                                                                                      (map #(-> % second)))
+                                                                  on-delete-rows (or (:on-delete-rows @spreadsheet-state)
+                                                                                     constantly)]
+                                                              (on-delete-rows rows-to-delete)
+
                                                               (reset! selected-rows #{})
                                                               (tily/set-atom! spreadsheet-state [:rows] new-rows)))} "Delete"]]
                                 (select-row)

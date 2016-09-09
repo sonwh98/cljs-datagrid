@@ -24,7 +24,7 @@
                                      :catalog          people
                                      :rows             people
                                      :search-fn        nil
-                                     :delete-row-fn    nil
+                                     :on-delete-rows    nil
                                      :sort-column      {:none true}
                                      :selected-rows    #{}
                                      :columns-config   [[:person/first-name (merge common-config {:unique           true
