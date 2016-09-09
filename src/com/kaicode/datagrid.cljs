@@ -1,9 +1,7 @@
 (ns com.kaicode.datagrid
   (:require [com.kaicode.tily :as tily]
             [com.kaicode.teleport :as t]
-            [com.kaicode.mercury :as m]
-            [reagent.core :as r]
-            [domina :as domina]))
+            [reagent.core :as r]))
 
 (defonce title-bar-height 60)
 (defonce left-corner-block-width 40)

@@ -20,7 +20,8 @@
         app-state     (reagent/atom {:window-dimension {:width  (. js/window -innerWidth)
                                                         :height (. js/window -innerHeight)}
                                      :rows             people
-                                     :on-delete-rows   nil
+                                     :on-delete-rows   (fn [rows]
+                                                         (println "deleting" rows))
                                      :columns-config   [[:person/first-name (merge common-config {:unique           true
                                                                                                   :render-header-fn (constantly "First Name")})]
                                                         [:person/last-name (merge common-config {:render-header-fn (constantly "Last Name")})]
