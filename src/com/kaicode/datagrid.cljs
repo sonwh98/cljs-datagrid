@@ -12,50 +12,50 @@
                               :padding 0
                               :border  "1px solid #d9d9d9"})
 
-(defn get-column-config [spreadsheet-state column-kw]
-  (->> @spreadsheet-state :columns-config (filter #(= (first %) column-kw)) first second))
+(defn get-column-config [grid-state column-kw]
+  (->> @grid-state :columns-config (filter #(= (first %) column-kw)) first second))
 
-(defn get-window-dimension [spreadsheet-state]
-  (-> @spreadsheet-state :window-dimension))
+(defn get-window-dimension [grid-state]
+  (-> @grid-state :window-dimension))
 
-(defn get-content-height [spreadsheet-state]
+(defn get-content-height [grid-state]
   (let [padding-bottom 35
         fudge-factor   30]
-    (-> spreadsheet-state get-window-dimension :height (- title-bar-height padding-bottom search-box-height fudge-factor))))
+    (-> grid-state get-window-dimension :height (- title-bar-height padding-bottom search-box-height fudge-factor))))
 
-(defn get-invisible-columns [spreadsheet-state]
-  (->> @spreadsheet-state :columns-config
+(defn get-invisible-columns [grid-state]
+  (->> @grid-state :columns-config
        (filter #(false? (-> % second :visible)))))
 
-(defn get-visible-columns [spreadsheet-state]
-  (->> @spreadsheet-state :columns-config
+(defn get-visible-columns [grid-state]
+  (->> @grid-state :columns-config
        (filter #(true? (-> % second :visible)))))
 
-(defn get-content-width [spreadsheet-state]
-  (-> spreadsheet-state get-window-dimension :width (- 6
-                                                       (-> spreadsheet-state get-visible-columns count))))
-(defn extra-width-per-visible-column [spreadsheet-state]
-  (let [total-content-width      (- (get-content-width spreadsheet-state) left-corner-block-width cog-button-wdith)
-        invisible-columns-config (get-invisible-columns spreadsheet-state)
+(defn get-content-width [grid-state]
+  (-> grid-state get-window-dimension :width (- 6
+                                                (-> grid-state get-visible-columns count))))
+(defn extra-width-per-visible-column [grid-state]
+  (let [total-content-width      (- (get-content-width grid-state) left-corner-block-width cog-button-wdith)
+        invisible-columns-config (get-invisible-columns grid-state)
         extra-width              (->> invisible-columns-config
                                       (map #(-> % second :width-weight (* total-content-width)))
                                       (reduce +))]
     (-> extra-width
-        (/ (-> spreadsheet-state get-visible-columns count))
+        (/ (-> grid-state get-visible-columns count))
         js/Math.floor)))
 
-(defn get-column-width [column-kw spreadsheet-state]
-  (let [total-content-width (- (get-content-width spreadsheet-state) left-corner-block-width cog-button-wdith)
-        width-weight        (:width-weight (get-column-config spreadsheet-state column-kw))
+(defn get-column-width [column-kw grid-state]
+  (let [total-content-width (- (get-content-width grid-state) left-corner-block-width cog-button-wdith)
+        width-weight        (:width-weight (get-column-config grid-state column-kw))
         width               (+ (* width-weight total-content-width)
-                               (extra-width-per-visible-column spreadsheet-state))]
+                               (extra-width-per-visible-column grid-state))]
     (js/Math.floor width)))
 
-(defn- cog [spreadsheet-state]
-  (let [id               (:id @spreadsheet-state)
+(defn- cog [grid-state]
+  (let [id               (:id @grid-state)
         setting-visible? (r/atom false)]
-    (fn [spreadsheet-state]
-      (let [columns-config (-> @spreadsheet-state :columns-config)]
+    (fn [grid-state]
+      (let [columns-config (-> @grid-state :columns-config)]
         [:div
          [:i {:class    "material-icons"
               :style    {:position :absolute
@@ -85,15 +85,15 @@
                [:li {:key k}
                 [:label {:class "mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" :for k}
                  [:input {:type      "checkbox" :id k :class "mdl-checkbox__input" :defaultChecked visible?
-                          :on-change #(swap! spreadsheet-state update-in [:columns-config i 1 :visible] not)}]
+                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
-(defn- data-column-headers [spreadsheet-state]
-  (doall (for [column-config (-> @spreadsheet-state :columns-config)
+(defn- data-column-headers [grid-state]
+  (doall (for [column-config (-> @grid-state :columns-config)
                :let [[column-kw config] column-config
-                     column-width   (get-column-width column-kw spreadsheet-state)
+                     column-width   (get-column-width column-kw grid-state)
                      header-txt     (-> config :render-header-fn (apply nil))
-                     sort-indicator (let [sort-column (-> @spreadsheet-state :sort-column)
+                     sort-indicator (let [sort-column (-> @grid-state :sort-column)
                                           column      (-> sort-column keys first)
                                           descending? (column-kw sort-column)]
                                       (when (= column-kw column)
@@ -101,28 +101,28 @@
                                           [:i {:class "material-icons"} "arrow_drop_down"]
                                           [:i {:class "material-icons"} "arrow_drop_up"])))
                      sort-column    (fn [evt]
-                                      (let [sort-column (:sort-column @spreadsheet-state)
-                                            rows        (:rows @spreadsheet-state)]
-                                        (swap! spreadsheet-state (fn [spreadsheet-state]
-                                                                   (let [comparator (cond
-                                                                                      (nil? sort-column) <
-                                                                                      :else (if (column-kw sort-column)
-                                                                                              >
-                                                                                              <))]
-                                                                     (-> spreadsheet-state
-                                                                         (update-in [:selected-rows] (constantly #{}))
-                                                                         (update-in [:sort-column] (fn [sc]
-                                                                                                     (let [val (column-kw sc)]
-                                                                                                       {column-kw (not val)})))
-                                                                         (update-in [:rows] (constantly
-                                                                                              (vec (sort-by
-                                                                                                     #(-> % column-kw
-                                                                                                          (or "") str
-                                                                                                          clojure.string/lower-case)
-                                                                                                     comparator
-                                                                                                     rows))))))))))]
+                                      (let [sort-column (:sort-column @grid-state)
+                                            rows        (:rows @grid-state)]
+                                        (swap! grid-state (fn [grid-state]
+                                                            (let [comparator (cond
+                                                                               (nil? sort-column) <
+                                                                               :else (if (column-kw sort-column)
+                                                                                       >
+                                                                                       <))]
+                                                              (-> grid-state
+                                                                  (update-in [:selected-rows] (constantly #{}))
+                                                                  (update-in [:sort-column] (fn [sc]
+                                                                                              (let [val (column-kw sc)]
+                                                                                                {column-kw (not val)})))
+                                                                  (update-in [:rows] (constantly
+                                                                                       (vec (sort-by
+                                                                                              #(-> % column-kw
+                                                                                                   (or "") str
+                                                                                                   clojure.string/lower-case)
+                                                                                              comparator
+                                                                                              rows))))))))))]
                :when (:visible config)]
-           [:div {:key      (tily/format "spreadsheet-%s-%s" (:id @spreadsheet-state) column-kw)
+           [:div {:key      (tily/format "spreadsheet-%s-%s" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                   :style    (merge {:display   :table-cell
                                     :width     column-width
@@ -133,32 +133,32 @@
             header-txt
             sort-indicator])))
 
-(defn- column-headers [spreadsheet-state]
+(defn- column-headers [grid-state]
   [:div {:style {:display :table-row}}
-   ;(plus-button spreadsheet-state)
-   [:div {:class  "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
+   ;(plus-button grid-state)
+   [:div {:class "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
           :style {:display   :table-cell
                   :width     left-corner-block-width
                   :min-width left-corner-block-width
                   :max-width left-corner-block-width
                   :padding   0}}]
-   (data-column-headers spreadsheet-state)
-   [cog spreadsheet-state]])
+   (data-column-headers grid-state)
+   [cog grid-state]])
 
-(defn- default-column-render [column-kw row spreadsheet-state]
-  (let [id           (-> @spreadsheet-state :id)
-        column-width (get-column-width column-kw spreadsheet-state)
+(defn- default-column-render [column-kw row grid-state]
+  (let [id           (-> @grid-state :id)
+        column-width (get-column-width column-kw grid-state)
         style        (merge {:width     column-width
                              :min-width column-width
                              :max-width column-width}
                             common-column-style)
         value        (str (column-kw @row))
-        unique       (-> (get-column-config spreadsheet-state column-kw) :unique)
+        unique       (-> (get-column-config grid-state column-kw) :unique)
         property     {:key                               (tily/format "spreadsheet-%s-default-column-render-%s" id column-kw)
                       :content-editable                  true
                       :suppress-content-editable-warning true
                       :style                             style}
-        save-fn      (or (:save-fn (get-column-config spreadsheet-state column-kw))
+        save-fn      (or (:save-fn (get-column-config grid-state column-kw))
                          #(swap! row update-in [column-kw] (constantly %)))
         save         (fn [evt]
                        (let [div     (. evt -target)
@@ -170,8 +170,8 @@
     [:div property
      value]))
 
-(defn- number-button [i spreadsheet-state]
-  (let [selected-rows (r/cursor spreadsheet-state [:selected-rows])
+(defn- number-button [i grid-state]
+  (let [selected-rows (r/cursor grid-state [:selected-rows])
         select-row    #(swap! selected-rows conj i)
         unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
                                                     (set (filter #(not= i %) selected-rows)))))]
@@ -186,8 +186,8 @@
                               (unselect-row)
                               (select-row))
            :on-drag-start   (fn [evt]
-                              (let [selected-row-indexes  (-> @spreadsheet-state (get-in [:selected-rows]))
-                                    selected-entities     (-> @spreadsheet-state :rows
+                              (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
+                                    selected-entities     (-> @grid-state :rows
                                                               (select-keys selected-row-indexes)
                                                               vals)
                                     entity-ids            (map #(:system/id %) selected-entities)
@@ -202,7 +202,7 @@
                                     y      (- y (. rect -top))
                                     delete [:a {:href     "#"
                                                 :on-click (fn [evt]
-                                                            (let [current-rows   (:rows @spreadsheet-state)
+                                                            (let [current-rows   (:rows @grid-state)
                                                                   index-row      (tily/with-index current-rows)
                                                                   new-rows       (->> index-row
                                                                                       (remove (fn [[index row]]
@@ -213,32 +213,32 @@
                                                                                       (filter (fn [[index row]]
                                                                                                 (tily/is-contained? index :in @selected-rows)))
                                                                                       (map #(-> % second)))
-                                                                  on-delete-rows (or (:on-delete-rows @spreadsheet-state)
+                                                                  on-delete-rows (or (:on-delete-rows @grid-state)
                                                                                      constantly)]
                                                               (on-delete-rows rows-to-delete)
 
                                                               (reset! selected-rows #{})
-                                                              (tily/set-atom! spreadsheet-state [:rows] new-rows)))} "Delete"]]
+                                                              (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
                                 (select-row)
-                                (tily/set-atom! spreadsheet-state [:context-menu :content] delete)
-                                (tily/set-atom! spreadsheet-state [:context-menu :coordinate] [x y])
+                                (tily/set-atom! grid-state [:context-menu :content] delete)
+                                (tily/set-atom! grid-state [:context-menu :coordinate] [x y])
                                 (. evt preventDefault)))}
      (inc i)]))
 
-(defn- rows [spreadsheet-state]
-  (let [id             (-> @spreadsheet-state :id)
-        total-width    (get-content-width spreadsheet-state)
-        total-height   (get-content-height spreadsheet-state)
-        columns-config (-> @spreadsheet-state :columns-config)
-        selected-rows  (r/cursor spreadsheet-state [:selected-rows])
+(defn- rows [grid-state]
+  (let [id             (-> @grid-state :id)
+        total-width    (get-content-width grid-state)
+        total-height   (get-content-height grid-state)
+        columns-config (-> @grid-state :columns-config)
+        selected-rows  (r/cursor grid-state [:selected-rows])
         row-data       (fn [row]
                          (doall (for [[column-kw config] columns-config
                                       :let [render-column-fn (:render-column-fn config)
                                             k                (tily/format "spreadsheet-%s-%s-%s" id (:system/id @row) column-kw)]
                                       :when (:visible config)]
                                   (if render-column-fn
-                                    ^{:key k} [render-column-fn column-kw row spreadsheet-state]
-                                    ^{:key k} [default-column-render column-kw row spreadsheet-state]))))
+                                    ^{:key k} [render-column-fn column-kw row grid-state]
+                                    ^{:key k} [default-column-render column-kw row grid-state]))))
         row-div        (fn [i row]
                          (let [style {:display :table-row}
                                style (if (tily/is-contained? i :in @selected-rows)
@@ -246,7 +246,7 @@
                                        style)]
                            [:div {:key   (tily/format "spreadsheet-%s-%s" id i)
                                   :style style}
-                            (number-button i spreadsheet-state)
+                            (number-button i grid-state)
                             (row-data row)]))]
     [:div {:id    (tily/format "spreadsheet-%s-rows" id)
            :style {:display    :block
@@ -254,13 +254,13 @@
                    :width      total-width
                    :overflow-y :auto
                    :overflow-x :hidden}}
-     (doall (for [i (range (-> @spreadsheet-state :rows count))
-                  :let [row (r/cursor spreadsheet-state [:rows i])]]
+     (doall (for [i (range (-> @grid-state :rows count))
+                  :let [row (r/cursor grid-state [:rows i])]]
               (row-div i row)))]))
 
-(defn- context-menu [spreadsheet-state]
-  (let [content    (-> @spreadsheet-state :context-menu :content)
-        coordinate (-> @spreadsheet-state :context-menu :coordinate)]
+(defn- context-menu [grid-state]
+  (let [content    (-> @grid-state :context-menu :content)
+        coordinate (-> @grid-state :context-menu :coordinate)]
     (when content
       [:div {:id    "context-menu"
              :style {:background-color :white
@@ -272,13 +272,13 @@
                      :top              (second coordinate)}}
        content])))
 
-(defn render [spreadsheet-state]
+(defn render [grid-state]
   (r/create-class {:component-will-mount (fn [this-component]
-                                           (tily/set-atom! spreadsheet-state [:id] (str (rand-int 1000))))
-                   :reagent-render       (fn [spreadsheet-state]
-                                           [:div {:on-click #(when (-> @spreadsheet-state :context-menu :content)
-                                                              (tily/set-atom! spreadsheet-state [:context-menu :content] nil))}
-                                            ;[search-box spreadsheet-state]
-                                            [context-menu spreadsheet-state]
-                                            [column-headers spreadsheet-state]
-                                            [rows spreadsheet-state]])}))
+                                           (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
+                   :reagent-render       (fn [grid-state]
+                                           [:div {:on-click #(when (-> @grid-state :context-menu :content)
+                                                              (tily/set-atom! grid-state [:context-menu :content] nil))}
+                                            ;[search-box grid-state]
+                                            [context-menu grid-state]
+                                            [column-headers grid-state]
+                                            [rows grid-state]])}))
