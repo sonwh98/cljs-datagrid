@@ -6,8 +6,7 @@
             [domina :as domina]))
 
 (defonce title-bar-height 60)
-(defonce plus-button-width 40)
-(defonce plus-button-height 40)
+(defonce left-corner-block-width 40)
 (defonce cog-button-wdith 15)
 (defonce search-box-height 67)
 
@@ -38,7 +37,7 @@
   (-> spreadsheet-state get-window-dimension :width (- 6
                                                        (-> spreadsheet-state get-visible-columns count))))
 (defn extra-width-per-visible-column [spreadsheet-state]
-  (let [total-content-width      (- (get-content-width spreadsheet-state) plus-button-width cog-button-wdith)
+  (let [total-content-width      (- (get-content-width spreadsheet-state) left-corner-block-width cog-button-wdith)
         invisible-columns-config (get-invisible-columns spreadsheet-state)
         extra-width              (->> invisible-columns-config
                                       (map #(-> % second :width-weight (* total-content-width)))
@@ -48,7 +47,7 @@
         js/Math.floor)))
 
 (defn get-column-width [column-kw spreadsheet-state]
-  (let [total-content-width (- (get-content-width spreadsheet-state) plus-button-width cog-button-wdith)
+  (let [total-content-width (- (get-content-width spreadsheet-state) left-corner-block-width cog-button-wdith)
         width-weight        (:width-weight (get-column-config spreadsheet-state column-kw))
         width               (+ (* width-weight total-content-width)
                                (extra-width-per-visible-column spreadsheet-state))]
@@ -107,14 +106,6 @@
   (m/postpone #(set! element -scrollTop (. element -scrollHeight))
               16))
 
-(defn- plus-button [spreadsheet-state]
-  [:div {:class "mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored"}
-   [:i {:class    "material-icons"
-        :on-click #(let [id       (:id @spreadsheet-state)
-                         div-rows (domina/by-id (tily/format "spreadsheet-%s-rows" id))]
-                    (swap! spreadsheet-state update-in [:rows] conj {})
-                    (scroll-to-bottom div-rows))} "add"]])
-
 (defn- data-column-headers [spreadsheet-state]
   (doall (for [column-config (-> @spreadsheet-state :columns-config)
                :let [[column-kw config] column-config
@@ -162,7 +153,13 @@
 
 (defn- column-headers [spreadsheet-state]
   [:div {:style {:display :table-row}}
-   (plus-button spreadsheet-state)
+   ;(plus-button spreadsheet-state)
+   [:div {:class  "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
+          :style {:display   :table-cell
+                  :width     left-corner-block-width
+                  :min-width left-corner-block-width
+                  :max-width left-corner-block-width
+                  :padding   0}}]
    (data-column-headers spreadsheet-state)
    [cog spreadsheet-state]])
 
@@ -199,9 +196,9 @@
     [:div {:draggable       true
            :class           "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
            :style           {:display   :table-cell
-                             :width     plus-button-width
-                             :min-width plus-button-width
-                             :max-width plus-button-width
+                             :width     left-corner-block-width
+                             :min-width left-corner-block-width
+                             :max-width left-corner-block-width
                              :padding   0}
            :on-click        #(if (tily/is-contained? i :in @selected-rows)
                               (unselect-row)
