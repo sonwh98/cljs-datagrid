@@ -33,11 +33,11 @@
                                                         [:person/email (merge common-config {:render-header-fn (constantly "Email")})]]})]
     app-state))
 
-(defonce app-state (init-db))
+(defonce grid-state (init-db))
 
 (defn hello-world []
-  (println (keys @app-state))
-  [data-grid/render app-state])
+  (println (keys @grid-state))
+  [data-grid/render grid-state])
 
 (reagent/render-component [hello-world]
                           (. js/document (getElementById "app")))
