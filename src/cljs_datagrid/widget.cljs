@@ -15,7 +15,7 @@
         [:div
          [:i {:class    "material-icons"
               :style    {:position :absolute
-                         }
+                         :right    0}
               :on-click #(swap! setting-visible? (fn [old-val] (not old-val)))} "settings"]
          (when @setting-visible?
            [:div {:style          {:position         :absolute
