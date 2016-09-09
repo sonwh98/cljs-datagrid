@@ -1,11 +1,69 @@
 (ns cljs-datagrid.widget
-  (:require [cljs-datagrid.util :as util]
-            [cljs-datagrid.constants :as const]
-            [com.kaicode.tily :as tily]
+  (:require [com.kaicode.tily :as tily]
             [com.kaicode.teleport :as t]
             [com.kaicode.mercury :as m]
             [reagent.core :as r]
             [domina :as domina]))
+
+(defonce title-bar-height 60)
+(defonce plus-button-width 40)
+(defonce plus-button-height 40)
+(defonce cog-button-wdith 15)
+(defonce search-box-height 67)
+
+(defonce common-column-style {:display :table-cell
+                              :padding 0
+                              :border  "1px solid #d9d9d9"})
+
+(defn get-column-config [spreadsheet-state column-kw]
+  (->> @spreadsheet-state :columns-config (filter #(= (first %) column-kw)) first second))
+
+(defn get-window-dimension [spreadsheet-state]
+  (-> @spreadsheet-state :window-dimension))
+
+(defn get-content-height [spreadsheet-state]
+  (let [padding-bottom 35
+        fudge-factor   30]
+    (-> spreadsheet-state get-window-dimension :height (- title-bar-height padding-bottom search-box-height fudge-factor))))
+
+(defn get-invisible-columns [spreadsheet-state]
+  (->> @spreadsheet-state :columns-config
+       (filter #(false? (-> % second :visible)))))
+
+(defn get-visible-columns [spreadsheet-state]
+  (->> @spreadsheet-state :columns-config
+       (filter #(true? (-> % second :visible)))))
+
+(defn get-content-width [spreadsheet-state]
+  (-> spreadsheet-state get-window-dimension :width (- 6
+                                                       (-> spreadsheet-state get-visible-columns count))))
+(defn extra-width-per-visible-column [spreadsheet-state]
+  (let [total-content-width      (- (get-content-width spreadsheet-state) plus-button-width cog-button-wdith)
+        invisible-columns-config (get-invisible-columns spreadsheet-state)
+        extra-width              (->> invisible-columns-config
+                                      (map #(-> % second :width-weight (* total-content-width)))
+                                      (reduce +))]
+    (-> extra-width
+        (/ (-> spreadsheet-state get-visible-columns count))
+        js/Math.floor)))
+
+(defn get-column-width [column-kw spreadsheet-state]
+  (let [total-content-width (- (get-content-width spreadsheet-state) plus-button-width cog-button-wdith)
+        width-weight        (:width-weight (get-column-config spreadsheet-state column-kw))
+        width               (+ (* width-weight total-content-width)
+                               (extra-width-per-visible-column spreadsheet-state))]
+    (js/Math.floor width)))
+
+(defn get-default-column-style [column-kw spreadsheet-state]
+  (let [column-width (get-column-width column-kw spreadsheet-state)
+        style        (merge {:width          column-width
+                             :min-width      column-width
+                             :max-width      column-width
+                             :text-align     :center
+                             :vertical-align :middle}
+                            common-column-style)]
+    style))
+
 
 (defn- cog [spreadsheet-state]
   (let [id               (:id @spreadsheet-state)
@@ -60,7 +118,7 @@
 (defn- data-column-headers [spreadsheet-state]
   (doall (for [column-config (-> @spreadsheet-state :columns-config)
                :let [[column-kw config] column-config
-                     column-width   (util/get-column-width column-kw spreadsheet-state)
+                     column-width   (get-column-width column-kw spreadsheet-state)
                      header-txt     (-> config :render-header-fn (apply nil))
                      sort-indicator (let [sort-column (-> @spreadsheet-state :sort-column)
                                           column      (-> sort-column keys first)
@@ -97,11 +155,10 @@
                                     :width     column-width
                                     :min-width column-width
                                     :max-width column-width}
-                                   const/common-column-style)
+                                   common-column-style)
                   :on-click sort-column}
             header-txt
             sort-indicator])))
-
 
 (defn- column-headers [spreadsheet-state]
   [:div {:style {:display :table-row}}
@@ -111,18 +168,18 @@
 
 (defn- default-column-render [column-kw row spreadsheet-state]
   (let [id           (-> @spreadsheet-state :id)
-        column-width (util/get-column-width column-kw spreadsheet-state)
+        column-width (get-column-width column-kw spreadsheet-state)
         style        (merge {:width     column-width
                              :min-width column-width
                              :max-width column-width}
-                            const/common-column-style)
+                            common-column-style)
         value        (str (column-kw @row))
-        unique       (-> (util/get-column-config spreadsheet-state column-kw) :unique)
+        unique       (-> (get-column-config spreadsheet-state column-kw) :unique)
         property     {:key                               (tily/format "spreadsheet-%s-default-column-render-%s" id column-kw)
                       :content-editable                  true
                       :suppress-content-editable-warning true
                       :style                             style}
-        save-fn      (or (:save-fn (util/get-column-config spreadsheet-state column-kw))
+        save-fn      (or (:save-fn (get-column-config spreadsheet-state column-kw))
                          #(swap! row update-in [column-kw] (constantly %)))
         save         (fn [evt]
                        (let [div     (. evt -target)
@@ -142,9 +199,9 @@
     [:div {:draggable       true
            :class           "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
            :style           {:display   :table-cell
-                             :width     const/plus-button-width
-                             :min-width const/plus-button-width
-                             :max-width const/plus-button-width
+                             :width     plus-button-width
+                             :min-width plus-button-width
+                             :max-width plus-button-width
                              :padding   0}
            :on-click        #(if (tily/is-contained? i :in @selected-rows)
                               (unselect-row)
@@ -191,8 +248,8 @@
 
 (defn- rows [spreadsheet-state]
   (let [id             (-> @spreadsheet-state :id)
-        total-width    (util/get-content-width spreadsheet-state)
-        total-height   (util/get-content-height spreadsheet-state)
+        total-width    (get-content-width spreadsheet-state)
+        total-height   (get-content-height spreadsheet-state)
         columns-config (-> @spreadsheet-state :columns-config)
         selected-rows  (r/cursor spreadsheet-state [:selected-rows])
         row-data       (fn [row]
