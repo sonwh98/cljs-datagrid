@@ -13,17 +13,15 @@
     (fn [spreadsheet-state]
       (let [columns-config (-> @spreadsheet-state :columns-config)]
         [:div
-         [:i {:class    "mdi mdi-settings"
+         [:i {:class    "material-icons"
               :style    {:position :absolute
-                         :top      (+ 75 const/search-box-height)
-                         :right    2}
-              :on-click #(swap! setting-visible? (fn [old-val] (not old-val)))}]
+                         }
+              :on-click #(swap! setting-visible? (fn [old-val] (not old-val)))} "settings"]
          (when @setting-visible?
            [:div {:style          {:position         :absolute
-                                   :z-index          10
-                                   :right            0
-                                   :top              (+ const/title-bar-height const/search-box-height
-                                                        (/ const/plus-button-height 1.5))
+                                   :z-index          1
+                                   :top              15
+                                   :right 0
                                    :padding          0
                                    :margin           0
                                    :opacity          1.0
@@ -269,7 +267,7 @@
                    :reagent-render       (fn [spreadsheet-state]
                                            [:div {:on-click #(when (-> @spreadsheet-state :context-menu :content)
                                                               (tily/set-atom! spreadsheet-state [:context-menu :content] nil))}
-                                            [search-box spreadsheet-state]
+                                            ;[search-box spreadsheet-state]
                                             [context-menu spreadsheet-state]
                                             [column-headers spreadsheet-state]
                                             [rows spreadsheet-state]])}))
