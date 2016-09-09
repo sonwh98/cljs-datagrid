@@ -36,7 +36,6 @@
 (defonce grid-state (init-db))
 
 (defn hello-world []
-  (println (keys @grid-state))
   [data-grid/render grid-state])
 
 (reagent/render-component [hello-world]
