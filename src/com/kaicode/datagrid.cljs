@@ -53,17 +53,6 @@
                                (extra-width-per-visible-column spreadsheet-state))]
     (js/Math.floor width)))
 
-(defn get-default-column-style [column-kw spreadsheet-state]
-  (let [column-width (get-column-width column-kw spreadsheet-state)
-        style        (merge {:width          column-width
-                             :min-width      column-width
-                             :max-width      column-width
-                             :text-align     :center
-                             :vertical-align :middle}
-                            common-column-style)]
-    style))
-
-
 (defn- cog [spreadsheet-state]
   (let [id               (:id @spreadsheet-state)
         setting-visible? (r/atom false)]
