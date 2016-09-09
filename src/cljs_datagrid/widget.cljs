@@ -279,32 +279,6 @@
                   :let [row (r/cursor spreadsheet-state [:rows i])]]
               (row-div i row)))]))
 
-(defn- run-search [spreadsheet-state]
-  (let [search-txt    (:search-txt @spreadsheet-state)
-        search-fn     (:search-fn @spreadsheet-state)
-        catalog       (:catalog @spreadsheet-state)
-        search-result (search-fn search-txt catalog)]
-    (tily/set-atom! spreadsheet-state [:rows] search-result)))
-
-(defn- search-box [spreadsheet-state]
-  (let [value (r/cursor spreadsheet-state [:search-txt])
-        id    (str "search-box-" (:id @spreadsheet-state))]
-    (fn [spreadsheet-state]
-      [:div
-       [:div {:class "mdl-textfield mdl-js-textfield mdl-textfield--floating-label search-box"
-              :style {:margin-left "50px"}}
-        [:input {:id        id
-                 :class     "mdl-textfield__input" :type "text" :value @value
-                 :on-change (fn [evt]
-                              (let [val (-> evt .-target .-value)]
-                                (reset! value val)
-                                (run-search spreadsheet-state)))}]
-        [:label {:class "mdl-textfield__label"} "Search"]]
-       [:i {:class    "material-icons"
-            :style    {:padding-top 25}
-            :on-click #(do (reset! value "")
-                           (run-search spreadsheet-state))} "clear"]])))
-
 (defn- context-menu [spreadsheet-state]
   (let [content    (-> @spreadsheet-state :context-menu :content)
         coordinate (-> @spreadsheet-state :context-menu :coordinate)]
