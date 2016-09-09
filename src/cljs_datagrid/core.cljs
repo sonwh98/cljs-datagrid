@@ -1,6 +1,6 @@
 (ns cljs-datagrid.core
   (:require [reagent.core :as reagent :refer [atom]]
-            [cljs-datagrid.widget :as data-grid]))
+            [com.kaicode.datagrid :as data-grid]))
 
 (enable-console-print!)
 
@@ -24,7 +24,7 @@
                                      :catalog          people
                                      :rows             people
                                      :search-fn        nil
-                                     :on-delete-rows    nil
+                                     :on-delete-rows   nil
                                      :sort-column      {:none true}
                                      :selected-rows    #{}
                                      :columns-config   [[:person/first-name (merge common-config {:unique           true
@@ -45,4 +45,4 @@
   ;; optionally touch your app-state to force rerendering depending on
   ;; your application
   ;; (swap! app-state update-in [:__figwheel_counter] inc)
-)
+  )

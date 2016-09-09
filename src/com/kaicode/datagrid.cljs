@@ -1,4 +1,4 @@
-(ns cljs-datagrid.widget
+(ns com.kaicode.datagrid
   (:require [com.kaicode.tily :as tily]
             [com.kaicode.teleport :as t]
             [com.kaicode.mercury :as m]
