@@ -252,7 +252,6 @@
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
                                                               (tily/set-atom! grid-state [:context-menu :content] nil))}
-                                            ;[search-box grid-state]
                                             [context-menu grid-state]
                                             [column-headers grid-state]
                                             [rows grid-state]])}))
