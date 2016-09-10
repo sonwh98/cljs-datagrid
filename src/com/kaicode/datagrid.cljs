@@ -3,11 +3,7 @@
             [com.kaicode.teleport :as t]
             [reagent.core :as r]))
 
-(defonce title-bar-height 60)
 (defonce left-corner-block-width 40)
-(defonce cog-button-wdith 24)
-(defonce search-box-height 67)
-
 (defonce common-column-style {:display :table-cell
                               :padding 0
                               :border  "1px solid #d9d9d9"})
@@ -20,8 +16,8 @@
 
 (defn get-content-height [grid-state]
   (let [padding-bottom 35
-        fudge-factor   30]
-    (-> grid-state get-window-dimension :height (- title-bar-height padding-bottom search-box-height fudge-factor))))
+        header-button-height 40]
+    (-> grid-state get-window-dimension :height (- padding-bottom header-button-height))))
 
 (defn get-invisible-columns [grid-state]
   (->> @grid-state :columns-config
@@ -35,7 +31,8 @@
   (-> grid-state get-window-dimension :width))
 
 (defn get-width-for-columns [grid-state]
-  (- (get-content-width grid-state) left-corner-block-width cog-button-wdith))
+  (- (get-content-width grid-state) left-corner-block-width 
+     (-> grid-state get-visible-columns count)))
 
 (defn extra-width-per-visible-column [grid-state]
   (let [width-for-columns        (get-width-for-columns grid-state)
@@ -53,46 +50,6 @@
         width               (+ (* width-weight width-for-columns)
                                (extra-width-per-visible-column grid-state))]
     (js/Math.floor width)))
-
-(defn- cog [grid-state]
-  (let [id               (:id @grid-state)
-        setting-visible? (r/atom false)
-        top              (r/atom 0)]
-    (fn [grid-state]
-      (let [columns-config (-> @grid-state :columns-config)]
-        [:div
-         [:i {:class    "material-icons"
-              :style    {:position :absolute
-                         :right    0}
-              :on-click (fn [evt]
-                          (reset! top (. evt -clientY))
-                          (swap! setting-visible? not))} "settings"]
-         (when @setting-visible?
-           [:div {:style          {:position         :absolute
-                                   :z-index          1
-                                   :top              @top
-                                   :right            0
-                                   :padding          0
-                                   :margin           0
-                                   :opacity          1.0
-                                   :border-left      "1px solid grey"
-                                   :background-color :white}
-                  :on-mouse-leave #(reset! setting-visible? false)}
-            [:ul {:style {:padding-left    5
-                          :padding-right   5
-                          :padding-top     0
-                          :padding-bottom  0
-                          :margin          0
-                          :list-style-type :none}}
-             (for [[i [column-kw config]] (tily/with-index columns-config)
-                   :let [k        (tily/format "grid-%s-cog-%s" id column-kw)
-                         visible? (:visible config)
-                         ch       (-> config :render-header-fn (apply nil))]]
-               [:li {:key k}
-                [:label {:class "mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" :for k}
-                 [:input {:type      "checkbox" :id k :class "mdl-checkbox__input" :defaultChecked visible?
-                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible] not)}]
-                 [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
@@ -150,8 +107,7 @@
                                                :padding   0}}]))]
     [:div {:style {:display :table-row}}
      (left-corner-block grid-state)
-     (data-column-headers grid-state)
-     [cog grid-state]]))
+     (data-column-headers grid-state)]))
 
 (defn- default-column-render [column-kw row grid-state]
   (let [id           (-> @grid-state :id)
