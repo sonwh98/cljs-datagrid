@@ -32,29 +32,32 @@
        (filter #(true? (-> % second :visible)))))
 
 (defn get-content-width [grid-state]
-  (-> grid-state get-window-dimension :width ))
+  (-> grid-state get-window-dimension :width))
+
+(defn get-width-for-columns [grid-state]
+  (- (get-content-width grid-state) left-corner-block-width cog-button-wdith))
 
 (defn extra-width-per-visible-column [grid-state]
-  (let [total-content-width      (- (get-content-width grid-state) left-corner-block-width cog-button-wdith)
+  (let [width-for-columns        (get-width-for-columns grid-state)
         invisible-columns-config (get-invisible-columns grid-state)
         extra-width              (->> invisible-columns-config
-                                      (map #(-> % second :width-weight (* total-content-width)))
+                                      (map #(-> % second :width-weight (* width-for-columns)))
                                       (reduce +))]
     (-> extra-width
         (/ (-> grid-state get-visible-columns count))
         js/Math.floor)))
 
 (defn get-column-width [column-kw grid-state]
-  (let [total-content-width (- (get-content-width grid-state) left-corner-block-width cog-button-wdith)
+  (let [width-for-columns (get-width-for-columns grid-state)
         width-weight        (:width-weight (get-column-config grid-state column-kw))
-        width               (+ (* width-weight total-content-width)
+        width               (+ (* width-weight width-for-columns)
                                (extra-width-per-visible-column grid-state))]
     (js/Math.floor width)))
 
 (defn- cog [grid-state]
   (let [id               (:id @grid-state)
         setting-visible? (r/atom false)
-        top (r/atom 0)]
+        top              (r/atom 0)]
     (fn [grid-state]
       (let [columns-config (-> @grid-state :columns-config)]
         [:div
@@ -118,12 +121,12 @@
                                                                                               (let [val (column-kw sc)]
                                                                                                 {column-kw (not val)})))
                                                                   (update-in [:rows] (constantly
-                                                                                      (vec (sort-by
-                                                                                            #(-> % column-kw
-                                                                                                 (or "") str
-                                                                                                 clojure.string/lower-case)
-                                                                                            comparator
-                                                                                            rows))))))))))]
+                                                                                       (vec (sort-by
+                                                                                              #(-> % column-kw
+                                                                                                   (or "") str
+                                                                                                   clojure.string/lower-case)
+                                                                                              comparator
+                                                                                              rows))))))))))]
                :when (:visible config)]
            [:div {:key      (tily/format "grid-%s-%s" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
@@ -188,8 +191,8 @@
                              :max-width left-corner-block-width
                              :padding   0}
            :on-click        #(if (tily/is-contained? i :in @selected-rows)
-                               (unselect-row)
-                               (select-row))
+                              (unselect-row)
+                              (select-row))
            :on-drag-start   (fn [evt]
                               (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                     selected-entities     (-> @grid-state :rows
@@ -282,8 +285,8 @@
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
-                                                               (tily/set-atom! grid-state [:context-menu :content] nil))}
-                                        ;[search-box grid-state]
+                                                              (tily/set-atom! grid-state [:context-menu :content] nil))}
+                                            ;[search-box grid-state]
                                             [context-menu grid-state]
                                             [column-headers grid-state]
                                             [rows grid-state]])}))
