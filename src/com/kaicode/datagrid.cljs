@@ -32,7 +32,7 @@
 
 (defn get-width-for-columns [grid-state]
   (- (get-content-width grid-state) left-corner-block-width 
-     (-> grid-state get-visible-columns count)))
+     (-> grid-state get-visible-columns count (+ 5))))
 
 (defn extra-width-per-visible-column [grid-state]
   (let [width-for-columns        (get-width-for-columns grid-state)
@@ -50,6 +50,16 @@
         width               (+ (* width-weight width-for-columns)
                                (extra-width-per-visible-column grid-state))]
     (js/Math.floor width)))
+
+(defn get-default-column-style [column-kw spreadsheet-state]
+  (let [column-width (get-column-width column-kw spreadsheet-state)
+        style (merge {:width         column-width
+                      :min-width     column-width
+                      :max-width     column-width
+                      :text-align :center
+                      :vertical-align :middle}
+                     common-column-style)]
+    style))
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
