@@ -5,7 +5,7 @@
 
 (defonce title-bar-height 60)
 (defonce left-corner-block-width 40)
-(defonce cog-button-wdith 15)
+(defonce cog-button-wdith 24)
 (defonce search-box-height 67)
 
 (defonce common-column-style {:display :table-cell
@@ -32,8 +32,8 @@
        (filter #(true? (-> % second :visible)))))
 
 (defn get-content-width [grid-state]
-  (-> grid-state get-window-dimension :width (- 6
-                                                (-> grid-state get-visible-columns count))))
+  (-> grid-state get-window-dimension :width ))
+
 (defn extra-width-per-visible-column [grid-state]
   (let [total-content-width      (- (get-content-width grid-state) left-corner-block-width cog-button-wdith)
         invisible-columns-config (get-invisible-columns grid-state)
@@ -53,18 +53,21 @@
 
 (defn- cog [grid-state]
   (let [id               (:id @grid-state)
-        setting-visible? (r/atom false)]
+        setting-visible? (r/atom false)
+        top (r/atom 0)]
     (fn [grid-state]
       (let [columns-config (-> @grid-state :columns-config)]
         [:div
          [:i {:class    "material-icons"
               :style    {:position :absolute
                          :right    0}
-              :on-click #(swap! setting-visible? (fn [old-val] (not old-val)))} "settings"]
+              :on-click (fn [evt]
+                          (reset! top (. evt -clientY))
+                          (swap! setting-visible? not))} "settings"]
          (when @setting-visible?
            [:div {:style          {:position         :absolute
                                    :z-index          1
-                                   :top              15
+                                   :top              @top
                                    :right            0
                                    :padding          0
                                    :margin           0
