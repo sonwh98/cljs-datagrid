@@ -79,7 +79,7 @@
                           :margin          0
                           :list-style-type :none}}
              (for [[i [column-kw config]] (tily/with-index columns-config)
-                   :let [k        (tily/format "spreadsheet-%s-cog-%s" id column-kw)
+                   :let [k        (tily/format "grid-%s-cog-%s" id column-kw)
                          visible? (:visible config)
                          ch       (-> config :render-header-fn (apply nil))]]
                [:li {:key k}
@@ -115,14 +115,14 @@
                                                                                               (let [val (column-kw sc)]
                                                                                                 {column-kw (not val)})))
                                                                   (update-in [:rows] (constantly
-                                                                                       (vec (sort-by
-                                                                                              #(-> % column-kw
-                                                                                                   (or "") str
-                                                                                                   clojure.string/lower-case)
-                                                                                              comparator
-                                                                                              rows))))))))))]
+                                                                                      (vec (sort-by
+                                                                                            #(-> % column-kw
+                                                                                                 (or "") str
+                                                                                                 clojure.string/lower-case)
+                                                                                            comparator
+                                                                                            rows))))))))))]
                :when (:visible config)]
-           [:div {:key      (tily/format "spreadsheet-%s-%s" (:id @grid-state) column-kw)
+           [:div {:key      (tily/format "grid-%s-%s" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                   :style    (merge {:display   :table-cell
                                     :width     column-width
@@ -134,16 +134,18 @@
             sort-indicator])))
 
 (defn- column-headers [grid-state]
-  [:div {:style {:display :table-row}}
-   ;(plus-button grid-state)
-   [:div {:class "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
-          :style {:display   :table-cell
-                  :width     left-corner-block-width
-                  :min-width left-corner-block-width
-                  :max-width left-corner-block-width
-                  :padding   0}}]
-   (data-column-headers grid-state)
-   [cog grid-state]])
+  (let [left-corner-block (or (:left-corner-block @grid-state)
+                              (fn [grid-state]
+                                [:div {:class "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
+                                       :style {:display   :table-cell
+                                               :width     left-corner-block-width
+                                               :min-width left-corner-block-width
+                                               :max-width left-corner-block-width
+                                               :padding   0}}]))]
+    [:div {:style {:display :table-row}}
+     (left-corner-block grid-state)
+     (data-column-headers grid-state)
+     [cog grid-state]]))
 
 (defn- default-column-render [column-kw row grid-state]
   (let [id           (-> @grid-state :id)
@@ -154,7 +156,7 @@
                             common-column-style)
         value        (str (column-kw @row))
         unique       (-> (get-column-config grid-state column-kw) :unique)
-        property     {:key                               (tily/format "spreadsheet-%s-default-column-render-%s" id column-kw)
+        property     {:key                               (tily/format "grid-%s-default-column-render-%s" id column-kw)
                       :content-editable                  true
                       :suppress-content-editable-warning true
                       :style                             style}
@@ -183,8 +185,8 @@
                              :max-width left-corner-block-width
                              :padding   0}
            :on-click        #(if (tily/is-contained? i :in @selected-rows)
-                              (unselect-row)
-                              (select-row))
+                               (unselect-row)
+                               (select-row))
            :on-drag-start   (fn [evt]
                               (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                     selected-entities     (-> @grid-state :rows
@@ -234,7 +236,7 @@
         row-data       (fn [row]
                          (doall (for [[column-kw config] columns-config
                                       :let [render-column-fn (:render-column-fn config)
-                                            k                (tily/format "spreadsheet-%s-%s-%s" id (:system/id @row) column-kw)]
+                                            k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]
                                       :when (:visible config)]
                                   (if render-column-fn
                                     ^{:key k} [render-column-fn column-kw row grid-state]
@@ -244,11 +246,11 @@
                                style (if (tily/is-contained? i :in @selected-rows)
                                        (assoc style :background-color "#e6faff")
                                        style)]
-                           [:div {:key   (tily/format "spreadsheet-%s-%s" id i)
+                           [:div {:key   (tily/format "grid-%s-%s" id i)
                                   :style style}
                             (number-button i grid-state)
                             (row-data row)]))]
-    [:div {:id    (tily/format "spreadsheet-%s-rows" id)
+    [:div {:id    (tily/format "grid-%s-rows" id)
            :style {:display    :block
                    :height     total-height
                    :width      total-width
@@ -277,8 +279,8 @@
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
-                                                              (tily/set-atom! grid-state [:context-menu :content] nil))}
-                                            ;[search-box grid-state]
+                                                               (tily/set-atom! grid-state [:context-menu :content] nil))}
+                                        ;[search-box grid-state]
                                             [context-menu grid-state]
                                             [column-headers grid-state]
                                             [rows grid-state]])}))
