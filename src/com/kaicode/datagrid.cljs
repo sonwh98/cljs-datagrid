@@ -15,9 +15,11 @@
   (-> @grid-state :window-dimension))
 
 (defn get-content-height [grid-state]
-  (let [padding-bottom 35
-        header-button-height 40]
-    (-> grid-state get-window-dimension :height (- padding-bottom header-button-height))))
+  (let [padding-bottom 20
+        header-button-height 40
+        title-bar-height 60
+        search-box-height 67]
+    (-> grid-state get-window-dimension :height (- title-bar-height search-box-height padding-bottom header-button-height))))
 
 (defn get-invisible-columns [grid-state]
   (->> @grid-state :columns-config
