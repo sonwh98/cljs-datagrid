@@ -139,7 +139,7 @@
         save         (fn [evt]
                        (let [div     (. evt -target)
                              content (. div -textContent)]
-                         (save-fn content @row column-kw)))
+                         (save-fn content row column-kw)))
         property     (if unique
                        (assoc property :on-blur save)
                        (assoc property :on-input save))]
