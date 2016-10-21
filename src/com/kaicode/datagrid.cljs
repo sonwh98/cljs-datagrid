@@ -131,7 +131,10 @@
         value        (str (column-kw @row))
         unique       (-> (get-column-config grid-state column-kw) :unique)
         property     {:key                               (tily/format "grid-%s-default-column-render-%s" id column-kw)
-                      :content-editable                  true
+                      :content-editable                  (let [col-config (get-column-config grid-state column-kw)]
+                                                           (if (contains? col-config :editable)
+                                                             (:editable col-config)
+                                                             true))
                       :suppress-content-editable-warning true
                       :style                             style}
         save-fn      (or (:save-fn (get-column-config grid-state column-kw))
