@@ -228,6 +228,7 @@
                             (number-button i grid-state)
                             (row-data row)]))]
     [:div {:id    (tily/format "grid-%s-rows" id)
+           :class "grid-rows"
            :style {:display    :block
                    :height     total-height
                    :width      total-width
