@@ -162,8 +162,8 @@
                              :max-width left-corner-block-width
                              :padding   0}
            :on-click        #(if (tily/is-contained? i :in @selected-rows)
-                              (unselect-row)
-                              (select-row))
+                               (unselect-row)
+                               (select-row))
            :on-drag-start   (fn [evt]
                               (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                     selected-entities     (-> @grid-state :rows
@@ -178,29 +178,31 @@
                                     x      (- (. evt -clientX) 10)
                                     y      (+ (. evt -clientY) 5)
                                     x      (- x (. rect -left))
-                                    y      (- y (. rect -top))
-                                    delete [:a {:href     "#"
-                                                :on-click (fn [evt]
-                                                            (let [current-rows   (:rows @grid-state)
-                                                                  index-row      (tily/with-index current-rows)
-                                                                  new-rows       (->> index-row
-                                                                                      (remove (fn [[index row]]
-                                                                                                (tily/is-contained? index :in @selected-rows)))
-                                                                                      (map #(second %))
-                                                                                      vec)
-                                                                  rows-to-delete (->> index-row
-                                                                                      (filter (fn [[index row]]
-                                                                                                (tily/is-contained? index :in @selected-rows)))
-                                                                                      (map #(-> % second)))
-                                                                  on-delete-rows (or (:on-delete-rows @grid-state)
-                                                                                     constantly)]
-                                                              (on-delete-rows rows-to-delete)
-
-                                                              (reset! selected-rows #{})
-                                                              (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
+                                    y      (- y (. rect -top))]
                                 (select-row)
-                                (tily/set-atom! grid-state [:context-menu :content] delete)
-                                (tily/set-atom! grid-state [:context-menu :coordinate] [x y])
+                                (if (:on-delete-rows @grid-state)
+                                  (let [delete [:a {:href     "#"
+                                                    :on-click (fn [evt]
+                                                                (let [current-rows   (:rows @grid-state)
+                                                                      index-row      (tily/with-index current-rows)
+                                                                      new-rows       (->> index-row
+                                                                                          (remove (fn [[index row]]
+                                                                                                    (tily/is-contained? index :in @selected-rows)))
+                                                                                          (map #(second %))
+                                                                                          vec)
+                                                                      rows-to-delete (->> index-row
+                                                                                          (filter (fn [[index row]]
+                                                                                                    (tily/is-contained? index :in @selected-rows)))
+                                                                                          (map #(-> % second)))
+                                                                      on-delete-rows (or (:on-delete-rows @grid-state)
+                                                                                         constantly)]
+                                                                  (on-delete-rows rows-to-delete)
+
+                                                                  (reset! selected-rows #{})
+                                                                  (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
+                                    (tily/set-atom! grid-state [:context-menu :content] delete)
+                                    (tily/set-atom! grid-state [:context-menu :coordinate] [x y])))
+                                
                                 (. evt preventDefault)))}
      (inc i)]))
 
