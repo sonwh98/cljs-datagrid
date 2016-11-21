@@ -1,7 +1,8 @@
 (ns com.kaicode.datagrid
   (:require [com.kaicode.tily :as tily]
             [com.kaicode.teleport :as t]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [cljsjs.hammer]))
 
 (defonce left-corner-block-width 40)
 (defonce common-column-style {:display :table-cell
