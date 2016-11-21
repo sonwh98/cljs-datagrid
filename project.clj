@@ -12,7 +12,7 @@
 
                  [com.kaicode/teleport "0.1.1-SNAPSHOT"]
                  [com.kaicode/tily "0.1.6-SNAPSHOT"]
-                 ]
+                 [cljsjs/hammer "2.0.4-5"]]
 
   :plugins [[lein-figwheel "0.5.4-7"]
             [lein-cljsbuild "1.1.3" :exclusions [[org.clojure/clojure]]]]
@@ -106,4 +106,4 @@
                                   :init (set! *print-length* 50)
                                   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
 
-)
+  )
