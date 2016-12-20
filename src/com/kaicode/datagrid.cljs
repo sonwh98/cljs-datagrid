@@ -130,25 +130,23 @@
                              :max-width column-width}
                             common-column-style)
         value        (str (column-kw @row))
-        ;;unique       (-> (get-column-config grid-state column-kw) :unique)
-        save-fn      (or (:save-fn (get-column-config grid-state column-kw))
-                         #(swap! row update-in [column-kw] (constantly %)))
-        save         (fn [evt]
-                       (let [div     (. evt -target)
-                             content (. div -textContent)]
-                         (save-fn content row column-kw)))
+        unique       (-> (get-column-config grid-state column-kw) :unique)
         property     {:key                               (tily/format "grid-%s-default-column-render-%s" id column-kw)
                       :content-editable                  (let [col-config (get-column-config grid-state column-kw)]
                                                            (if (contains? col-config :editable)
                                                              (:editable col-config)
                                                              true))
                       :suppress-content-editable-warning true
-                      :style                             style
-                      :on-blur save}
-        ;; property     (if unique
-        ;;                (assoc property :on-blur save)
-        ;;                (assoc property :on-input save))
-        ]
+                      :style                             style}
+        save-fn      (or (:save-fn (get-column-config grid-state column-kw))
+                         #(swap! row update-in [column-kw] (constantly %)))
+        save         (fn [evt]
+                       (let [div     (. evt -target)
+                             content (. div -textContent)]
+                         (save-fn content row column-kw)))
+        property     (if unique
+                       (assoc property :on-blur save)
+                       (assoc property :on-input save))]
     [:div property
      value]))
 
