@@ -299,6 +299,49 @@
                      :top              (second coordinate)}}
        content])))
 
+(defn cog [grid-state]
+  (let [id (:id @grid-state)
+        setting-visible? (r/atom false)]
+    (fn [grid-state]
+      (let [columns-config (-> @grid-state :columns-config)
+            title-bar-height 60
+            search-box-height 77
+            header-height 40
+            cog-top (+ title-bar-height search-box-height (/ header-height 2))
+            drop-down-top (+ cog-top 15)]
+        [:div
+         [:i {:class "material-icons"
+              :style {:position :absolute
+                      :right 2
+                      :top cog-top}
+              :on-click #(swap! setting-visible? (fn [old-val] (not old-val)))} "settings"]
+         (when @setting-visible?
+           [:div {:style {:position :absolute
+                          :z-index 10
+                          :top drop-down-top
+                          :right 0
+                          :padding 0
+                          :margin 0
+                          :opacity 1.0
+                          :border-left "1px solid grey"
+                          :background-color :white}
+                  :on-mouse-leave #(reset! setting-visible? false)}
+            [:ul {:style {:padding-left 5
+                          :padding-right 5
+                          :padding-top 0
+                          :padding-bottom  0
+                          :margin 0
+                          :list-style-type :none}}
+             (for [[i [column-kw config]] (tily/with-index columns-config)
+                   :let [k (tily/format "spreadsheet-%s-cog-%s" id column-kw)
+                         visible? (:visible config)
+                         ch (-> config :render-header-fn (apply nil))]]
+               [:li {:key k}
+                [:label {:class "mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" :for k}
+                 [:input {:type "checkbox" :id k :class "mdl-checkbox__input" :defaultChecked visible?
+                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible] not)}]
+                 [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
+
 (defn render [grid-state]
   (r/create-class {:component-will-mount (fn [this-component]
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
