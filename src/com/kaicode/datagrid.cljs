@@ -91,12 +91,12 @@
                                                                                               (let [val (column-kw sc)]
                                                                                                 {column-kw (not val)})))
                                                                   (update-in [:rows] (constantly
-                                                                                       (vec (sort-by
-                                                                                              #(-> % column-kw
-                                                                                                   (or "") str
-                                                                                                   clojure.string/lower-case)
-                                                                                              comparator
-                                                                                              rows))))))))))]
+                                                                                      (vec (sort-by
+                                                                                            #(-> % column-kw
+                                                                                                 (or "") str
+                                                                                                 clojure.string/lower-case)
+                                                                                            comparator
+                                                                                            rows))))))))))]
                :when (:visible config)]
            [:div {:key      (tily/format "grid-%s-%s" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
@@ -131,21 +131,31 @@
                             common-column-style)
         value        (str (column-kw @row))
         unique       (-> (get-column-config grid-state column-kw) :unique)
+        
+        local-save (fn [evt]
+                     (let [div     (. evt -target)
+                           content (. div -textContent)
+                           local-save-fn (:local-save-fn (get-column-config grid-state column-kw))]
+                       (prn "local-save-fn" local-save-fn)
+                       (local-save-fn content row column-kw)))
+        remote-save (fn [evt]
+                      (let [div     (. evt -target)
+                            content (. div -textContent)
+                            remote-save-fn (:remote-save-fn (get-column-config grid-state column-kw))]
+                        (remote-save-fn content row column-kw)))
         property     {:key                               (tily/format "grid-%s-default-column-render-%s" id column-kw)
                       :content-editable                  (let [col-config (get-column-config grid-state column-kw)]
                                                            (if (contains? col-config :editable)
                                                              (:editable col-config)
                                                              true))
                       :suppress-content-editable-warning true
-                      :style                             style}
-        save         (fn [evt]
-                       (let [div     (. evt -target)
-                             content (. div -textContent)
-                             save-fn (:remote-save-fn (get-column-config grid-state column-kw))]
-                         (save-fn content row column-kw)))
+                      :style                             style
+                      :on-blur (fn [evt]
+                                 (local-save evt)
+                                 (remote-save evt))}
         property     (if unique
-                       (assoc property :on-blur save)
-                       (assoc property :on-input save))]
+                       property
+                       (assoc property :on-input remote-save))]
     [:div property
      value]))
 
@@ -294,7 +304,7 @@
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
-                                                              (tily/set-atom! grid-state [:context-menu :content] nil))}
+                                                               (tily/set-atom! grid-state [:context-menu :content] nil))}
                                             [context-menu grid-state]
                                             [column-headers grid-state]
                                             [rows grid-state]])}))
