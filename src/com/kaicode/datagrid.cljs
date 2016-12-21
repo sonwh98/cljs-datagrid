@@ -307,7 +307,7 @@
             title-bar-height 60
             search-box-height 77
             header-height 40
-            cog-top (+ title-bar-height search-box-height (/ header-height 2))
+            cog-top (+ 48 35)
             drop-down-top (+ cog-top 15)]
         [:div
          [:i {:class "material-icons"
