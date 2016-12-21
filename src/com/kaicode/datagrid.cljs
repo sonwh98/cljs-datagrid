@@ -138,7 +138,7 @@
                                                              true))
                       :suppress-content-editable-warning true
                       :style                             style}
-        save-fn      (or (:save-fn (get-column-config grid-state column-kw))
+        save-fn      (or (:remote-save-fn (get-column-config grid-state column-kw))
                          #(swap! row update-in [column-kw] (constantly %)))
         save         (fn [evt]
                        (let [div     (. evt -target)
