@@ -136,7 +136,6 @@
                      (let [div     (. evt -target)
                            content (. div -textContent)
                            local-save-fn (:local-save-fn (get-column-config grid-state column-kw))]
-                       (prn "local-save-fn" local-save-fn)
                        (local-save-fn content row column-kw)))
         remote-save (fn [evt]
                       (let [div     (. evt -target)
