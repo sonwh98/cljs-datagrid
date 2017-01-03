@@ -264,10 +264,6 @@
                                         (inc i)
                                         [hover-indicator i]])})))
 
-(defn- extra-row []
-  [:div {:style {:display :none}}
-   "a hidden div"])
-
 (defn- rows [grid-state]
   (let [id             (-> @grid-state :id)
         total-width    (get-content-width grid-state)
@@ -282,6 +278,8 @@
                                   (if render-column-fn
                                     ^{:key k} [render-column-fn column-kw row grid-state]
                                     ^{:key k} [default-column-render column-kw row grid-state]))))
+        extra-row-div  (fn [] [:div {:style {:display :none}}
+                               "a hidden div"])
         row-div        (fn [i row]
                          (let [style {:display :table-row}
                                style (if (tily/is-contained? i :in @selected-rows)
@@ -291,7 +289,7 @@
                             [:div {:style style}
                              [number-button i grid-state]
                              (row-data row)]
-                            [extra-row]]))]
+                            [extra-row-div]]))]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
            :style {:display    :block
