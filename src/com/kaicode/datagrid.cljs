@@ -163,15 +163,15 @@
 (def number-button-hover-id (r/atom nil))
 
 (defn- number-button [i grid-state]
-  (let [selected-rows (r/cursor grid-state [:selected-rows])
-        select-row    #(swap! selected-rows conj i)
-        unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
-                                                    (set (filter #(not= i %) selected-rows)))))
-        hover-style   (fn [i] (when (= i @number-button-hover-id)
-                                {:background-color "#d9d9d9"}))
-        hover-arrow   (fn [] (when (= i @number-button-hover-id)
-                               [:i.material-icons {:style {:margin -5 :margin-right -8}}
-                                "arrow_drop_down"]))]
+  (let [selected-rows   (r/cursor grid-state [:selected-rows])
+        select-row      #(swap! selected-rows conj i)
+        unselect-row    (fn [] (swap! selected-rows (fn [selected-rows]
+                                                      (set (filter #(not= i %) selected-rows)))))
+        hover-style     (fn [i] (when (= i @number-button-hover-id)
+                                  {:background-color "#d9d9d9"}))
+        hover-indicator (fn [] (when (= i @number-button-hover-id)
+                                 [:i.material-icons {:style {:margin -5 :margin-right -8}}
+                                  "arrow_drop_down"]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
@@ -262,7 +262,7 @@
 
                                                                    (. evt preventDefault)))}
                                         (inc i)
-                                        [hover-arrow]])})))
+                                        [hover-indicator]])})))
 
 (defn- rows [grid-state]
   (let [id             (-> @grid-state :id)
