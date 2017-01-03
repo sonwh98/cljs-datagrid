@@ -159,17 +159,15 @@
      value]))
 
 
-;; temporary atom, just to check
-(def number-button-hover-id (r/atom nil))
-
 (defn- number-button [i grid-state]
   (let [selected-rows   (r/cursor grid-state [:selected-rows])
+        hovered-nb-row  (r/cursor grid-state [:hovered-number-button-row])
         select-row      #(swap! selected-rows conj i)
         unselect-row    (fn [] (swap! selected-rows (fn [selected-rows]
                                                       (set (filter #(not= i %) selected-rows)))))
-        hover-style     (fn [i] (when (= i @number-button-hover-id)
+        hover-style     (fn [i] (when (= i @hovered-nb-row)
                                   {:background-color "#d9d9d9"}))
-        hover-indicator (fn [i] (when (= i @number-button-hover-id)
+        hover-indicator (fn [i] (when (= i @hovered-nb-row)
                                   [:i.material-icons {:style {:margin       -5
                                                               :margin-right -8}
                                                       :on-click #(js/alert "click")}
@@ -222,8 +220,8 @@
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
-                                              :on-mouse-enter  (fn [_] (reset! number-button-hover-id i))
-                                              :on-mouse-leave  (fn [_] (reset! number-button-hover-id nil))
+                                              :on-mouse-enter  (fn [_] (reset! hovered-nb-row i))
+                                              :on-mouse-leave  (fn [_] (reset! hovered-nb-row nil))
                                               :on-drag-start   (fn [evt]
                                                                  (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                                                        selected-entities     (-> @grid-state :rows
