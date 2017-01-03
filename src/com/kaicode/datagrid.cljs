@@ -167,8 +167,8 @@
         select-row    #(swap! selected-rows conj i)
         unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
                                                     (set (filter #(not= i %) selected-rows)))))
-        build-style   (fn [] (if @number-button-hover-id
-                               {:background-color "red"}))]
+        build-style   (fn [i] (when (= i @number-button-hover-id)
+                                {:background-color "red"}))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
@@ -213,7 +213,7 @@
                                                                   :min-width left-corner-block-width
                                                                   :max-width left-corner-block-width
                                                                   :padding   0}
-                                                                 (build-style))
+                                                                 (build-style i))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
