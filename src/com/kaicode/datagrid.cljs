@@ -181,7 +181,9 @@
                                                     (expand-row))
                                                   (.. evt stopPropagation)
                                                   (.. evt -nativeEvent stopImmediatePropagation))}
-                                  "arrow_drop_down"]))]
+                                   (if (tily/is-contained? i :in @expanded-rows)
+                                     "arrow_drop_up"
+                                     "arrow_drop_down")]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
