@@ -168,7 +168,7 @@
         unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
                                                     (set (filter #(not= i %) selected-rows)))))
         build-style   (fn [i] (when (= i @number-button-hover-id)
-                                {:background-color "red"}))]
+                                {:background-color "#d9d9d9"}))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
