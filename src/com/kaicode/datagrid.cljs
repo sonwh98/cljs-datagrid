@@ -160,7 +160,7 @@
 
 
 ;; temporary atom, just to check
-(def number-button-hover? (r/atom false))
+(def number-button-hover-id (r/atom nil))
 
 (defn- number-button [i grid-state]
   (let [selected-rows (r/cursor grid-state [:selected-rows])
