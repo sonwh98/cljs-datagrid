@@ -363,6 +363,7 @@
 
 (defn render [grid-state]
   (r/create-class {:component-will-mount (fn [this-component]
+                                           (tily/set-atom! grid-state [:expanded-rows] #{})
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
