@@ -167,7 +167,7 @@
         select-row    #(swap! selected-rows conj i)
         unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
                                                     (set (filter #(not= i %) selected-rows)))))
-        build-style   (fn [] (if @number-button-hover?
+        build-style   (fn [] (if @number-button-hover-id
                                {:background-color "red"}))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
@@ -217,8 +217,8 @@
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
-                                              :on-mouse-enter  (fn [_] (reset! number-button-hover? true))
-                                              :on-mouse-leave  (fn [_] (reset! number-button-hover? false))
+                                              :on-mouse-enter  (fn [_] (reset! number-button-hover-id true))
+                                              :on-mouse-leave  (fn [_] (reset! number-button-hover-id false))
                                               :on-drag-start   (fn [evt]
                                                                  (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                                                        selected-entities     (-> @grid-state :rows
