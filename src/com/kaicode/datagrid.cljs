@@ -112,7 +112,7 @@
 (defn- column-headers [grid-state]
   (let [left-corner-block (or (:left-corner-block @grid-state)
                               (fn [grid-state]
-                                [:div {:class "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
+                                [:div {:class "mdl-button mdl-js-button mdl-button--raised"
                                        :style {:display   :table-cell
                                                :width     left-corner-block-width
                                                :min-width left-corner-block-width
