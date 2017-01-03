@@ -170,7 +170,8 @@
         hover-style   (fn [i] (when (= i @number-button-hover-id)
                                 {:background-color "#d9d9d9"}))
         hover-arrow   (fn [] (when (= i @number-button-hover-id)
-                               [:i {:class "material-icons"} "arrow_drop_down"]))]
+                               [:i.material-icons {:style {:margin -5 :margin-right -8}}
+                                "arrow_drop_down"]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
