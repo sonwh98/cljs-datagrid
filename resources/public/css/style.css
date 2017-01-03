@@ -1,2 +1,4 @@
-/* some style */
+.number-button-indicator:hover {
+  border: 1px solid gray;
+}
 

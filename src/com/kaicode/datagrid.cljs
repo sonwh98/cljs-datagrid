@@ -171,14 +171,14 @@
         hover-style     (fn [] (when (= i @hovered-nb-row)
                                  {:background-color "#d9d9d9"}))
         hover-indicator (fn [] (when (= i @hovered-nb-row)
-                                 [:i.material-icons {:style {:margin       -5
-                                                             :margin-right -8}
-                                                      :on-click (fn [evt]
-                                                                  (if (tily/is-contained? i :in @expanded-rows)
-                                                                    (collapse-row)
-                                                                    (expand-row))
-                                                                  (.. evt stopPropagation)
-                                                                  (.. evt -nativeEvent stopImmediatePropagation))}
+                                 [:i.number-button-indicator.material-icons {:style {:margin       -5
+                                                                                     :margin-right -8}
+                                                                             :on-click (fn [evt]
+                                                                                         (if (tily/is-contained? i :in @expanded-rows)
+                                                                                           (collapse-row)
+                                                                                           (expand-row))
+                                                                                         (.. evt stopPropagation)
+                                                                                         (.. evt -nativeEvent stopImmediatePropagation))}
                                   "arrow_drop_down"]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
