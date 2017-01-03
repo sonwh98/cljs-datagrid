@@ -264,7 +264,7 @@
                                         (inc i)
                                         [hover-indicator i]])})))
 
-(defn- div* []
+(defn- extra-row []
   [:div {:style {:display :none}}
    "a hidden div"])
 
@@ -291,7 +291,7 @@
                             [:div {:style style}
                              [number-button i grid-state]
                              (row-data row)]
-                            [div*]]))]
+                            [extra-row]]))]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
            :style {:display    :block
