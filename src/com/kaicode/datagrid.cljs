@@ -217,8 +217,8 @@
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
-                                              :on-mouse-enter  (fn [_] (reset! number-button-hover-id true))
-                                              :on-mouse-leave  (fn [_] (reset! number-button-hover-id false))
+                                              :on-mouse-enter  (fn [_] (reset! number-button-hover-id i))
+                                              :on-mouse-leave  (fn [_] (reset! number-button-hover-id nil))
                                               :on-drag-start   (fn [evt]
                                                                  (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                                                        selected-entities     (-> @grid-state :rows
