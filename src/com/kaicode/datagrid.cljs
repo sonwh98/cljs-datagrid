@@ -168,7 +168,9 @@
         unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
                                                     (set (filter #(not= i %) selected-rows)))))
         build-style   (fn [i] (when (= i @number-button-hover-id)
-                                {:background-color "#d9d9d9"}))]
+                                {:background-color "#d9d9d9"}))
+        hover-arrow   (fn [] (when (= i @number-button-hover-id)
+                               [:i {:class "material-icons"} "arrow_drop_down"]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
@@ -258,7 +260,8 @@
                                                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y])))
 
                                                                    (. evt preventDefault)))}
-                                        (inc i)])})))
+                                        (inc i)
+                                        [hover-arrow]])})))
 
 (defn- rows [grid-state]
   (let [id             (-> @grid-state :id)
