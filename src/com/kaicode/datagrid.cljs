@@ -161,10 +161,13 @@
 
 (defn- number-button [i grid-state]
   (let [selected-rows   (r/cursor grid-state [:selected-rows])
+        expanded-rows  (r/cursor grid-state [:expanded-rows])
         hovered-nb-row  (r/cursor grid-state [:hovered-number-button-row])
         select-row      #(swap! selected-rows conj i)
         unselect-row    (fn [] (swap! selected-rows (fn [selected-rows]
                                                       (set (filter #(not= i %) selected-rows)))))
+        expand-row      (fn [] (swap! expanded-rows conj i))
+        collapse-row    (fn [] (swap! expanded-rows disj i))
         hover-style     (fn [i] (when (= i @hovered-nb-row)
                                   {:background-color "#d9d9d9"}))
         hover-indicator (fn [i] (when (= i @hovered-nb-row)
