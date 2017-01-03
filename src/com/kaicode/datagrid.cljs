@@ -167,7 +167,7 @@
         select-row    #(swap! selected-rows conj i)
         unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
                                                     (set (filter #(not= i %) selected-rows)))))
-        build-style   (fn [i] (when (= i @number-button-hover-id)
+        hover-style   (fn [i] (when (= i @number-button-hover-id)
                                 {:background-color "#d9d9d9"}))
         hover-arrow   (fn [] (when (= i @number-button-hover-id)
                                [:i {:class "material-icons"} "arrow_drop_down"]))]
@@ -215,7 +215,7 @@
                                                                   :min-width left-corner-block-width
                                                                   :max-width left-corner-block-width
                                                                   :padding   0}
-                                                                 (build-style i))
+                                                                 (hover-style i))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
