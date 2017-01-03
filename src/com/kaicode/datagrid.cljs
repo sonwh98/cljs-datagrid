@@ -4,7 +4,7 @@
             [reagent.core :as r]
             [cljsjs.hammer]))
 
-(defonce left-corner-block-width 40)
+(defonce left-corner-block-width 60)
 (defonce common-column-style {:display :table-cell
                               :padding 0
                               :border  "1px solid #d9d9d9"})
@@ -172,15 +172,16 @@
         hover-style     (fn [] (when (= i @hovered-nb-row)
                                  {:background-color "#d9d9d9"}))
         hover-indicator (fn [] (when (= i @hovered-nb-row)
-                                 [:i.number-button-indicator.material-icons {:style {:margin-left 5
-                                                                                     :margin-right -10}
-                                                                             :on-click (fn [evt]
-                                                                                         (if (tily/is-contained? i :in @expanded-rows)
-                                                                                           (collapse-row)
-                                                                                           (expand-row))
-                                                                                         (.. evt stopPropagation)
-                                                                                         (.. evt -nativeEvent stopImmediatePropagation))}
-                                  "arrow_drop_down"]))]
+                                 [:i {:class "number-button-indicator material-icons"
+                                      :style {:margin-left    5
+                                              :margin-right -10}
+                                      :on-click (fn [evt]
+                                                  (if (tily/is-contained? i :in @expanded-rows)
+                                                    (collapse-row)
+                                                    (expand-row))
+                                                  (.. evt stopPropagation)
+                                                  (.. evt -nativeEvent stopImmediatePropagation))}
+              "arrow_drop_down"]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
