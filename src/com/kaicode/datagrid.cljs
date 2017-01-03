@@ -292,7 +292,7 @@
                             [:div {:style style}
                              [number-button i grid-state]
                              (row-data row)]
-                            [extra-row-div]]))]
+                            [extra-row-div i]]))]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
            :style {:display    :block
