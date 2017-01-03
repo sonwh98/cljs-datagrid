@@ -172,8 +172,8 @@
         hover-style     (fn [] (when (= i @hovered-nb-row)
                                  {:background-color "#d9d9d9"}))
         hover-indicator (fn [] (when (= i @hovered-nb-row)
-                                 [:i.number-button-indicator.material-icons {:style {:margin       -5
-                                                                                     :margin-right -8}
+                                 [:i.number-button-indicator.material-icons {:style {:margin-left 5
+                                                                                     :margin-right -10}
                                                                              :on-click (fn [evt]
                                                                                          (if (tily/is-contained? i :in @expanded-rows)
                                                                                            (collapse-row)
