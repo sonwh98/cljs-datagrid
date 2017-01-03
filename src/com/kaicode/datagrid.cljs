@@ -168,10 +168,10 @@
                                                       (set (filter #(not= i %) selected-rows)))))
         expand-row      (fn [] (swap! expanded-rows conj i))
         collapse-row    (fn [] (swap! expanded-rows disj i))
-        hover-style     (fn [i] (when (= i @hovered-nb-row)
-                                  {:background-color "#d9d9d9"}))
-        hover-indicator (fn [i] (when (= i @hovered-nb-row)
-                                  [:i.material-icons {:style {:margin       -5
+        hover-style     (fn [] (when (= i @hovered-nb-row)
+                                 {:background-color "#d9d9d9"}))
+        hover-indicator (fn [] (when (= i @hovered-nb-row)
+                                 [:i.material-icons {:style {:margin       -5
                                                               :margin-right -8}
                                                       :on-click #(js/alert "click")}
                                   "arrow_drop_down"]))]
@@ -219,7 +219,7 @@
                                                                   :min-width left-corner-block-width
                                                                   :max-width left-corner-block-width
                                                                   :padding   0}
-                                                                 (hover-style i))
+                                                                 (hover-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
@@ -265,7 +265,7 @@
 
                                                                    (. evt preventDefault)))}
                                         (inc i)
-                                        [hover-indicator i]])})))
+                                        [hover-indicator]])})))
 
 (defn- rows [grid-state]
   (let [id             (-> @grid-state :id)
