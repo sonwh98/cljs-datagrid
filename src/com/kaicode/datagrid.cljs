@@ -270,6 +270,7 @@
         total-height   (get-content-height grid-state)
         columns-config (-> @grid-state :columns-config)
         selected-rows  (r/cursor grid-state [:selected-rows])
+        expanded-rows  (r/cursor grid-state [:expanded-rows])
         row-data       (fn [row]
                          (doall (for [[column-kw config] columns-config
                                       :let [render-column-fn (:render-column-fn config)
