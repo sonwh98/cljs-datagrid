@@ -56,10 +56,10 @@
 
 (defn get-default-column-style [column-kw spreadsheet-state]
   (let [column-width (get-column-width column-kw spreadsheet-state)
-        style (merge {:width         column-width
-                      :min-width     column-width
-                      :max-width     column-width
-                      :text-align :center
+        style (merge {:width          column-width
+                      :min-width      column-width
+                      :max-width      column-width
+                      :text-align     :center
                       :vertical-align :middle}
                      common-column-style)]
     style))
