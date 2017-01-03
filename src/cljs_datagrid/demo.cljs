@@ -19,12 +19,18 @@
                         :person/email "jane.doe@foobar.com"}]
         app-state     (reagent/atom {:window-dimension {:width  (. js/window -innerWidth)
                                                         :height (. js/window -innerHeight)}
-                                     :left-corner-block (fn [grid-state]
-                                                          [:div {:class    "mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored"}
-                                                           [:i {:class "material-icons"
-                                                                :on-click #(let [id (:id @grid-state)
-                                                                                 div-rows (js/document.getElementById (str "grid-" id "rows"))]
-                                                                             (swap! grid-state update-in [:rows] conj {}))} "add"]])
+                                     :left-corner-block (fn [grid-state style] ;; This fn should be able to merge provided
+                                                                               ;; styles with it's top-level node, so we
+                                                                               ;; are able to set it's width for example.
+                                                          [:div {:style (merge {:display :table-cell
+                                                                                :vertical-align :middle
+                                                                                :text-align :center}
+                                                                               style)}
+                                                           [:div {:class "mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored"}
+                                                            [:i {:class "material-icons"
+                                                                 :on-click #(let [id (:id @grid-state)
+                                                                                  div-rows (js/document.getElementById (str "grid-" id "rows"))]
+                                                                              (swap! grid-state update-in [:rows] conj {}))} "add"]]])
                                      :rows             people
                                      :on-delete-rows   (fn [rows]
                                                          (println "deleting" rows))

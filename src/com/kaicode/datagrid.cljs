@@ -110,16 +110,17 @@
             sort-indicator])))
 
 (defn- column-headers [grid-state]
-  (let [left-corner-block (or (:left-corner-block @grid-state)
-                              (fn [grid-state]
-                                [:div {:class "mdl-button mdl-js-button mdl-button--raised"
-                                       :style {:display   :table-cell
-                                               :width     left-corner-block-width
-                                               :min-width left-corner-block-width
-                                               :max-width left-corner-block-width
-                                               :padding   0}}]))]
+  (let [left-corner-block-style {:display   :table-cell
+                                 :width     left-corner-block-width
+                                 :min-width left-corner-block-width
+                                 :max-width left-corner-block-width
+                                 :padding   0}
+        left-corner-block       (or (:left-corner-block @grid-state)
+                                    (fn [grid-state style]
+                                      [:div {:class "mdl-button mdl-js-button mdl-button--raised"
+                                             :style style}]))]
     [:div {:style {:display :table-row}}
-     (left-corner-block grid-state)
+     (left-corner-block grid-state left-corner-block-style)
      (data-column-headers grid-state)]))
 
 (defn- default-column-render [column-kw row grid-state]
