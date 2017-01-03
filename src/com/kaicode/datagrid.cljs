@@ -264,6 +264,10 @@
                                         (inc i)
                                         [hover-indicator i]])})))
 
+(defn- div* []
+  [:div {:style {:display :none}}
+   "a hidden div"])
+
 (defn- rows [grid-state]
   (let [id             (-> @grid-state :id)
         total-width    (get-content-width grid-state)
@@ -283,10 +287,11 @@
                                style (if (tily/is-contained? i :in @selected-rows)
                                        (assoc style :background-color "#e6faff")
                                        style)]
-                           [:div {:key   (tily/format "grid-%s-%s" id i)
-                                  :style style}
-                            [number-button i grid-state]
-                            (row-data row)]))]
+                           [:div {:key   (tily/format "grid-%s-%s" id i)}
+                            [:div {:style style}
+                             [number-button i grid-state]
+                             (row-data row)]
+                            [div*]]))]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
            :style {:display    :block
