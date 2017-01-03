@@ -158,11 +158,17 @@
     [:div property
      value]))
 
+
+;; temporary atom, just to check
+(def number-button-hover? (r/atom false))
+
 (defn- number-button [i grid-state]
   (let [selected-rows (r/cursor grid-state [:selected-rows])
         select-row    #(swap! selected-rows conj i)
         unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
-                                                    (set (filter #(not= i %) selected-rows)))))]
+                                                    (set (filter #(not= i %) selected-rows)))))
+        build-style   (fn [] (if @number-button-hover?
+                               {:background-color "red"}))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
@@ -201,14 +207,18 @@
                                        [:div {:id i
                                               :draggable       true
                                               :class           "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
-                                              :style           {:display   :table-cell
-                                                                :width     left-corner-block-width
-                                                                :min-width left-corner-block-width
-                                                                :max-width left-corner-block-width
-                                                                :padding   0}
+                                              :style           (merge
+                                                                 {:display   :table-cell
+                                                                  :width     left-corner-block-width
+                                                                  :min-width left-corner-block-width
+                                                                  :max-width left-corner-block-width
+                                                                  :padding   0}
+                                                                 (build-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
+                                              :on-mouse-enter  (fn [_] (reset! number-button-hover? true))
+                                              :on-mouse-leave  (fn [_] (reset! number-button-hover? false))
                                               :on-drag-start   (fn [evt]
                                                                  (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                                                        selected-entities     (-> @grid-state :rows
