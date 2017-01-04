@@ -7,8 +7,7 @@
 (defn init-db []
   (let [weight        (/ 1 3)
         common-config {:visible      true
-                       :width-weight weight
-                       :extra-fields [:person/telephone]}
+                       :width-weight weight}
         people        [{:person/first-name "Sonny"
                         :person/last-name  "Su"
                         :person/email      "sonny.su@foobar.com"
@@ -24,7 +23,6 @@
         app-state     (reagent/atom {:window-dimension {:width  (. js/window -innerWidth)
                                                         :height (. js/window -innerHeight)}
                                      :left-corner-block (fn [grid-state style] ;; This fn should be able to merge provided
-
                                                                                ;; styles with it's top-level node, so we
                                                                                ;; are able to set it's width for example.
                                                           [:div {:style (merge {:display :table-cell
@@ -41,8 +39,10 @@
                                                          (println "deleting" rows))
                                      :columns-config   [[:person/first-name (merge common-config {:unique           true
                                                                                                   :render-header-fn (constantly "First Name")})]
-                                                        [:person/last-name (merge common-config {:render-header-fn (constantly "Last Name")})]
-                                                        [:person/email (merge common-config {:render-header-fn (constantly "Email")})]]})]
+                                                        [:person/last-name  (merge common-config {:render-header-fn (constantly "Last Name")})]
+                                                        [:person/email      (merge common-config {:render-header-fn (constantly "Email")})]
+                                                        [:person/telephone  (merge common-config {:extra? true
+                                                                                                  :render-header-fn (constantly "Telephone")})]]})]
     app-state))
 
 (defonce grid-state (init-db))
