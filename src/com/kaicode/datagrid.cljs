@@ -310,6 +310,7 @@
                              (row-data row)]))
         extra-row-data  (fn [row]
                           (doall (for [[column-kw config] columns-config
+                                       :when (:visible config)
                                        :when (:extra? config)
                                        :let [render-column-fn (:render-column-fn config)
                                              k                (tily/format "grid-%s-%s-%s-extra" id (:system/id @row) column-kw)]]
