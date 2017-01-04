@@ -11,15 +11,23 @@
         people        [{:person/first-name "Sonny"
                         :person/last-name  "Su"
                         :person/email      "sonny.su@foobar.com"
-                        :person/telephone  "123"}
+                        :person/telephone  "123"
+                        :person/gender     "M"}
                        {:person/first-name "John"
                         :person/last-name  "Smith"
                         :person/email      "john.smith@foobar.com"
-                        :person/telephone  "1234"}
+                        :person/telephone  "1234"
+                        :person/gender     "M"}
                        {:person/first-name "Jane"
                         :person/last-name  "Doe"
                         :person/email      "jane.doe@foobar.com"
-                        :person/telephone  "12345"}]
+                        :person/telephone  "12345"
+                        :person/gender     "F"}
+                       {:person/first-name "Jane"
+                        :person/last-name  "Austen"
+                        :person/email      "jane.austen@foobar.com"
+                        :person/telephone  "123456"
+                        :person/gender     "F"}]
         app-state     (reagent/atom {:window-dimension {:width  (. js/window -innerWidth)
                                                         :height (. js/window -innerHeight)}
                                      :left-corner-block (fn [grid-state style] ;; This fn should be able to merge provided
@@ -42,7 +50,9 @@
                                                         [:person/last-name  (merge common-config {:render-header-fn (constantly "Last Name")})]
                                                         [:person/email      (merge common-config {:render-header-fn (constantly "Email")})]
                                                         [:person/telephone  (merge common-config {:extra? true
-                                                                                                  :render-header-fn (constantly "Telephone")})]]})]
+                                                                                                  :render-header-fn (constantly "Telephone")})]
+                                                        [:person/gender     (merge common-config {:extra? true
+                                                                                                  :render-header-fn (constantly "Gender")})]]})]
     app-state))
 
 (defonce grid-state (init-db))
