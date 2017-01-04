@@ -17,9 +17,9 @@
                         :person/email      "john.smith@foobar.com"
                         :person/telephone  "123"}
                        {:person/first-name "Jane"
-                        :person/last-name "Doe"
-                        :person/email "jane.doe@foobar.com"
-                        :person/telephone "123"}]
+                        :person/last-name  "Doe"
+                        :person/email      "jane.doe@foobar.com"
+                        :person/telephone  "123"}]
         app-state     (reagent/atom {:window-dimension {:width  (. js/window -innerWidth)
                                                         :height (. js/window -innerHeight)}
                                      :left-corner-block (fn [grid-state style] ;; This fn should be able to merge provided
