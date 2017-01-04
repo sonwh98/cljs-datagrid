@@ -292,13 +292,15 @@
                                   (if render-column-fn
                                     ^{:key k} [render-column-fn column-kw row grid-state]
                                     ^{:key k} [default-column-render column-kw row grid-state]))))
+        extra-row-data  (fn [i]
+                          [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
+                                          {:display :none})}
+                           (for [column-config (-> @grid-state :columns-config)
+                                 :let [[column-kw config] column-config]
+                                 :when (:extra? config)]
+                             column-kw)])
         extra-row-div  (fn [i]
-                         [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
-                                         {:display :none})}
-                          (for [column-config (-> @grid-state :columns-config)
-                                :let [[column-kw config] column-config]
-                                :when (:extra? config)]
-                            column-kw)])
+                         [extra-row-data i])
         row-div        (fn [i row]
                          (let [style {:display :table-row}
                                style (if (tily/is-contained? i :in @selected-rows)
