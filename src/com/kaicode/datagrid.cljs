@@ -98,7 +98,7 @@
                                                                                                  clojure.string/lower-case)
                                                                                             comparator
                                                                                             rows))))))))))]
-               :when (:visible config)]
+               :when (:visible? config)]
            [:div {:key      (tily/format "grid-%s-%s-header" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                   :style    (merge {:display   :table-cell
@@ -284,6 +284,7 @@
                                            [hover-indicator]])])})))
 
 (defn- rows [grid-state]
+<<<<<<< a4c021eb5df761dbcc3beac10eeb070bc9cecc78
   (let [id              (-> @grid-state :id)
         total-width     (get-content-width grid-state)
         total-height    (get-content-height grid-state)
@@ -384,12 +385,12 @@
                           :list-style-type :none}}
              (for [[i [column-kw config]] (tily/with-index columns-config)
                    :let [k (tily/format "spreadsheet-%s-cog-%s" id column-kw)
-                         visible? (:visible config)
+                         visible? (:visible? config)
                          ch (-> config :render-header-fn (apply nil))]]
                [:li {:key k}
                 [:label {:class "mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" :for k}
                  [:input {:type "checkbox" :id k :class "mdl-checkbox__input" :defaultChecked visible?
-                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible] not)}]
+                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible?] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
 (defn render [grid-state]
