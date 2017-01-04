@@ -170,21 +170,24 @@
                                                       (set (filter #(not= i %) selected-rows)))))
         expand-row      (fn [] (swap! expanded-rows conj i))
         collapse-row    (fn [] (swap! expanded-rows disj i))
-        hover-style     (fn [] (when (= i @hovered-nb-row)
-                                 {:background-color "#d9d9d9"}))
-        hover-indicator (fn [] (when (= i @hovered-nb-row)
-                                 [:i {:class "number-button-indicator material-icons"
-                                      :style {:margin-left    5
-                                              :margin-right -10}
-                                      :on-click (fn [evt]
-                                                  (if (tily/is-contained? i :in @expanded-rows)
-                                                    (collapse-row)
-                                                    (expand-row))
-                                                  (.. evt stopPropagation)
-                                                  (.. evt -nativeEvent stopImmediatePropagation))}
-                                   (if (tily/is-contained? i :in @expanded-rows)
-                                     "arrow_drop_up"
-                                     "arrow_drop_down")]))]
+        hoverable?      (some? i)
+        hover-style     (when (= i @hovered-nb-row)
+                          {:background-color "#d9d9d9"})
+        hover-indicator (fn []
+                          (when (= i @hovered-nb-row)
+                            [:i {:class (str "number-button-indicator material-icons"
+                                             (when hoverable? " number-button-indicator-hoverable"))
+                                 :style {:margin-left    5
+                                         :margin-right -10}
+                                 :on-click (fn [evt]
+                                             (if (tily/is-contained? i :in @expanded-rows)
+                                               (collapse-row)
+                                               (expand-row))
+                                             (.. evt stopPropagation)
+                                             (.. evt -nativeEvent stopImmediatePropagation))}
+                              (if (tily/is-contained? i :in @expanded-rows)
+                                "arrow_drop_up"
+                                "arrow_drop_down")]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
@@ -229,12 +232,14 @@
                                                                   :min-width left-corner-block-width
                                                                   :max-width left-corner-block-width
                                                                   :padding   0}
-                                                                 (hover-style))
+                                                                 ;; why is it necessary?
+                                                                 (when hoverable?
+                                                                   hover-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
-                                              :on-mouse-enter  (fn [_] (reset! hovered-nb-row i))
-                                              :on-mouse-leave  (fn [_] (reset! hovered-nb-row nil))
+                                              :on-mouse-enter  (fn [_] (when hoverable? (reset! hovered-nb-row i)))
+                                              :on-mouse-leave  (fn [_] (when hoverable? (reset! hovered-nb-row nil)))
                                               :on-drag-start   (fn [evt]
                                                                  (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                                                        selected-entities     (-> @grid-state :rows
@@ -274,7 +279,7 @@
                                                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y])))
 
                                                                    (. evt preventDefault)))}
-                                        (when i
+                                        (when hoverable?
                                           [:div
                                            (inc i)
                                            [hover-indicator]])])})))
@@ -327,8 +332,8 @@
                   :let [row (r/cursor grid-state [:rows i])
                         k   (tily/format "grid-%s-%s-extra" id i)]]
               ^{:key k} [:div
-                         (row-div i row)
-                         (extra-row-div i row)]))]))
+                         [row-div i row]
+                         [extra-row-div i row]]))]))
 
 (defn- context-menu [grid-state]
   (let [content    (-> @grid-state :context-menu :content)
