@@ -6,7 +6,7 @@
 
 (defn init-db []
   (let [weight        (/ 1 3)
-        common-config {:visible      true
+        common-config {:visible?      true
                        :width-weight weight}
         people        [{:person/first-name "Sonny"
                         :person/last-name  "Su"

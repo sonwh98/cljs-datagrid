@@ -24,11 +24,11 @@
 
 (defn get-invisible-columns [grid-state]
   (->> @grid-state :columns-config
-       (filter #(false? (-> % second :visible)))))
+       (filter #(false? (-> % second :visible?)))))
 
 (defn get-visible-columns [grid-state]
   (->> @grid-state :columns-config
-       (filter #(true? (-> % second :visible)))))
+       (filter #(true? (-> % second :visible?)))))
 
 (defn get-content-width [grid-state]
   (-> grid-state get-window-dimension :width))
@@ -159,7 +159,6 @@
                        (assoc property :on-input remote-save))]
     [:div property
      value]))
-
 
 (defn- number-button [i grid-state]
   (let [selected-rows   (r/cursor grid-state [:selected-rows])
@@ -293,6 +292,7 @@
         expanded-rows    (r/cursor grid-state [:expanded-rows])
         row-data         (fn [row reagent-key-fn {:keys [extra? visible?]}]
                            (doall (for [[column-kw config] columns-config
+                                        ;; use get-visible-columns, write filter-default-columns, etc.
                                         :when (if extra? (= extra? (:extra? config)) true)
                                         :when (if visible? (= visible? (:visible config)) true)
                                         :let [render-column-fn (:render-column-fn config)
