@@ -295,7 +295,10 @@
         extra-row-div  (fn [i]
                          [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
                                          {:display :none})}
-                          "a hidden div"])
+                          (for [column-config (-> @grid-state :columns-config)
+                                :let [[column-kw config] column-config]
+                                :when (:extra? config)]
+                            column-kw)])
         row-div        (fn [i row]
                          (let [style {:display :table-row}
                                style (if (tily/is-contained? i :in @selected-rows)
