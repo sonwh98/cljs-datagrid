@@ -293,10 +293,10 @@
         expanded-rows   (r/cursor grid-state [:expanded-rows])
         row-data        (fn [row]
                           (doall (for [[column-kw config] columns-config
-                                       :let [render-column-fn (:render-column-fn config)
-                                             k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]
                                        :when (:visible config)
-                                       :when (not (:extra? config))]
+                                       :when (not (:extra? config))
+                                       :let [render-column-fn (:render-column-fn config)
+                                             k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
                                    (if render-column-fn
                                      ^{:key k} [render-column-fn column-kw row grid-state]
                                      ^{:key k} [default-column-render column-kw row grid-state]))))
@@ -310,9 +310,9 @@
                              (row-data row)]))
         extra-row-data  (fn [row]
                           (doall (for [[column-kw config] columns-config
+                                       :when (:extra? config)
                                        :let [render-column-fn (:render-column-fn config)
-                                             k                (tily/format "grid-%s-%s-%s-extra" id (:system/id @row) column-kw)]
-                                       :when (:extra? config)]
+                                             k                (tily/format "grid-%s-%s-%s-extra" id (:system/id @row) column-kw)]]
                                   (if render-column-fn
                                      ^{:key k} [render-column-fn column-kw row grid-state]
                                      ^{:key k} [default-column-render column-kw row grid-state]))))
