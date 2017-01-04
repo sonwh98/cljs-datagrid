@@ -7,19 +7,24 @@
 (defn init-db []
   (let [weight        (/ 1 3)
         common-config {:visible      true
-                       :width-weight weight}
+                       :width-weight weight
+                       :extra-fields [:person/telephone]}
         people        [{:person/first-name "Sonny"
                         :person/last-name  "Su"
-                        :person/email      "sonny.su@foobar.com"}
+                        :person/email      "sonny.su@foobar.com"
+                        :person/telephone  "123"}
                        {:person/first-name "John"
                         :person/last-name  "Smith"
-                        :person/email      "john.smith@foobar.com"}
+                        :person/email      "john.smith@foobar.com"
+                        :person/telephone  "123"}
                        {:person/first-name "Jane"
                         :person/last-name "Doe"
-                        :person/email "jane.doe@foobar.com"}]
+                        :person/email "jane.doe@foobar.com"
+                        :person/telephone "123"}]
         app-state     (reagent/atom {:window-dimension {:width  (. js/window -innerWidth)
                                                         :height (. js/window -innerHeight)}
                                      :left-corner-block (fn [grid-state style] ;; This fn should be able to merge provided
+
                                                                                ;; styles with it's top-level node, so we
                                                                                ;; are able to set it's width for example.
                                                           [:div {:style (merge {:display :table-cell
