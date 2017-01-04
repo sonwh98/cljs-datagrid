@@ -99,7 +99,7 @@
                                                                                             comparator
                                                                                             rows))))))))))]
                :when (:visible config)]
-           [:div {:key      (tily/format "grid-%s-%s" (:id @grid-state) column-kw)
+           [:div {:key      (tily/format "grid-%s-%s-header" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                   :style    (merge {:display   :table-cell
                                     :width     column-width
@@ -278,39 +278,41 @@
                                         [hover-indicator]])})))
 
 (defn- rows [grid-state]
-  (let [id             (-> @grid-state :id)
-        total-width    (get-content-width grid-state)
-        total-height   (get-content-height grid-state)
-        columns-config (-> @grid-state :columns-config)
-        selected-rows  (r/cursor grid-state [:selected-rows])
-        expanded-rows  (r/cursor grid-state [:expanded-rows])
-        row-data       (fn [row]
-                         (doall (for [[column-kw config] columns-config
-                                      :let [render-column-fn (:render-column-fn config)
-                                            k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]
-                                      :when (:visible config)]
-                                  (if render-column-fn
-                                    ^{:key k} [render-column-fn column-kw row grid-state]
-                                    ^{:key k} [default-column-render column-kw row grid-state]))))
-        extra-row-data  (fn [i]
-                          [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
-                                          {:display :none})}
-                           (for [column-config (-> @grid-state :columns-config)
-                                 :let [[column-kw config] column-config]
-                                 :when (:extra? config)]
-                             column-kw)])
-        extra-row-div  (fn [i]
-                         [extra-row-data i])
-        row-div        (fn [i row]
-                         (let [style {:display :table-row}
-                               style (if (tily/is-contained? i :in @selected-rows)
-                                       (assoc style :background-color "#e6faff")
-                                       style)]
-                           [:div {:key   (tily/format "grid-%s-%s" id i)}
+  (let [id              (-> @grid-state :id)
+        total-width     (get-content-width grid-state)
+        total-height    (get-content-height grid-state)
+        columns-config  (-> @grid-state :columns-config)
+        selected-rows   (r/cursor grid-state [:selected-rows])
+        expanded-rows   (r/cursor grid-state [:expanded-rows])
+        row-data        (fn [row]
+                          (doall (for [[column-kw config] columns-config
+                                       :let [render-column-fn (:render-column-fn config)
+                                             k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]
+                                       :when (:visible config)
+                                       :when (not (:extra? config))]
+                                   (if render-column-fn
+                                     ^{:key k} [render-column-fn column-kw row grid-state]
+                                     ^{:key k} [default-column-render column-kw row grid-state]))))
+        row-div         (fn [i row]
+                          (let [style {:display :table-row}
+                                style (if (tily/is-contained? i :in @selected-rows)
+                                        (assoc style :background-color "#e6faff")
+                                        style)]
                             [:div {:style style}
                              [number-button i grid-state]
-                             (row-data row)]
-                            [extra-row-div i]]))]
+                             (row-data row)]))
+        extra-row-data  (fn [row]
+                          (doall (for [[column-kw config] columns-config
+                                       :let [render-column-fn (:render-column-fn config)
+                                             k                (tily/format "grid-%s-%s-%s-extra" id (:system/id @row) column-kw)]
+                                       :when (:extra? config)]
+                                  (if render-column-fn
+                                     ^{:key k} [render-column-fn column-kw row grid-state]
+                                     ^{:key k} [default-column-render column-kw row grid-state]))))
+        extra-row-div   (fn [i row]
+                          [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
+                                          {:display :none})}
+                           (extra-row-data row)])]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
            :style {:display    :block
@@ -319,8 +321,11 @@
                    :overflow-y :auto
                    :overflow-x :hidden}}
      (doall (for [i (range (-> @grid-state :rows count))
-                  :let [row (r/cursor grid-state [:rows i])]]
-              (row-div i row)))]))
+                  :let [row (r/cursor grid-state [:rows i])
+                        k   (tily/format "grid-%s-%s-extra" id i)]]
+              ^{:key k} [:div
+                         (row-div i row)
+                         (extra-row-div i row)]))]))
 
 (defn- context-menu [grid-state]
   (let [content    (-> @grid-state :context-menu :content)
