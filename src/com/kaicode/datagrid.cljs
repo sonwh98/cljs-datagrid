@@ -98,7 +98,7 @@
                                                                                                  clojure.string/lower-case)
                                                                                             comparator
                                                                                             rows))))))))))]
-               :when (:visible config)]
+               :when (:visible? config)]
            [:div {:key      (tily/format "grid-%s-%s-header" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                   :style    (merge {:display   :table-cell
@@ -294,7 +294,7 @@
                            (doall (for [[column-kw config] columns-config
                                         ;; use get-visible-columns, write filter-default-columns, etc.
                                         :when (if extra? (= extra? (:extra? config)) true)
-                                        :when (if visible? (= visible? (:visible config)) true)
+                                        :when (if visible? (= visible? (:visible? config)) true)
                                         :let [render-column-fn (:render-column-fn config)
                                               k                (reagent-key-fn (:system/id @row) column-kw)]]
                                     (if render-column-fn
@@ -389,12 +389,12 @@
                           :list-style-type :none}}
              (for [[i [column-kw config]] (tily/with-index columns-config)
                    :let [k (tily/format "spreadsheet-%s-cog-%s" id column-kw)
-                         visible? (:visible config)
+                         visible? (:visible? config)
                          ch (-> config :render-header-fn (apply nil))]]
                [:li {:key k}
                 [:label {:class "mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" :for k}
                  [:input {:type "checkbox" :id k :class "mdl-checkbox__input" :defaultChecked visible?
-                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible] not)}]
+                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible?] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
 (defn render [grid-state]
