@@ -274,8 +274,10 @@
                                                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y])))
 
                                                                    (. evt preventDefault)))}
-                                        (inc i)
-                                        [hover-indicator]])})))
+                                        (when i
+                                          [:div
+                                           (inc i)
+                                           [hover-indicator]])])})))
 
 (defn- rows [grid-state]
   (let [id              (-> @grid-state :id)
@@ -312,6 +314,7 @@
         extra-row-div   (fn [i row]
                           [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
                                           {:display :none})}
+                           [number-button nil grid-state]
                            (extra-row-data row)])]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
