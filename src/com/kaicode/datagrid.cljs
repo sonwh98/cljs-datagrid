@@ -284,7 +284,6 @@
                                            [hover-indicator]])])})))
 
 (defn- rows [grid-state]
-<<<<<<< a4c021eb5df761dbcc3beac10eeb070bc9cecc78
   (let [id              (-> @grid-state :id)
         total-width     (get-content-width grid-state)
         total-height    (get-content-height grid-state)
