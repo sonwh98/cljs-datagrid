@@ -83,6 +83,10 @@
   [grid-state column-kws]
   (apply + (map #(get-column-width % grid-state) column-kws)))
 
+(defn- can-mark-column-as-sticky? [grid-state column-kw]
+  (every? (partial sticky-column? grid-state)
+          (get-left-column-kws grid-state column-kw)))
+
 (defn- column-header-style [grid-state column-kw]
   (let [column-width (get-column-width column-kw grid-state)]
     (cond-> (merge common-column-style
