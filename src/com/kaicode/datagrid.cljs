@@ -64,8 +64,14 @@
                      common-column-style)]
     style))
 
-(defn- mark-as-sticky [grid-state column-kw]
+(defn- mark-column-as-sticky [grid-state column-kw]
   (swap! grid-state update :sticky-columns conj column-kw))
+
+(defn- mark-column-as-not-sticky [grid-state column-kw]
+  (swap! grid-state update :sticky-columns disj column-kw))
+
+(defn- sticky-column? [grid-state column-kw]
+  (tily/is-contained? column-kw :in (:sticky-columns @grid-state)))
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
@@ -117,8 +123,13 @@
                                            x      (- x (. rect -left))
                                            y      (- y (. rect -top))
                                            stick  [:a {:href     "#"
-                                                       :on-click (fn [_] (mark-as-sticky grid-state column-kw))}
-                                                   "Mark as sticky"]]
+                                                       :on-click (fn [_]
+                                                                   (if (sticky-column? grid-state column-kw)
+                                                                     (mark-column-as-not-sticky grid-state column-kw)
+                                                                     (mark-column-as-sticky grid-state column-kw)))}
+                                                   (if (sticky-column? grid-state column-kw)
+                                                     "Mark as not sticky"
+                                                     "Mark as sticky")]]
                                        (tily/set-atom! grid-state [:context-menu :content] stick)
                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y]))
                                      (. evt preventDefault))}
