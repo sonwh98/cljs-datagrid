@@ -150,7 +150,10 @@
                                                    (if (sticky-column? grid-state column-kw)
                                                      "Mark as not sticky"
                                                      "Mark as sticky")]]
-                                       (tily/set-atom! grid-state [:context-menu :content] stick)
+                                       (tily/set-atom! grid-state [:context-menu :content]
+                                         (when (or (sticky-column? grid-state column-kw)
+                                                   (can-mark-column-as-sticky? grid-state column-kw))
+                                           stick))
                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y]))
                                      (. evt preventDefault))}
             header-txt
