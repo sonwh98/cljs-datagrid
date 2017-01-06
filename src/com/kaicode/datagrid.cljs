@@ -73,6 +73,11 @@
 (defn- sticky-column? [grid-state column-kw]
   (tily/is-contained? column-kw :in (:sticky-columns @grid-state)))
 
+(defn- get-left-column-kws
+  "Returns a set of column keywords that are on the left side of column-kw"
+  [grid-state column-kw]
+  (set (take-while #(not= column-kw %) (map first (:columns-config @grid-state)))))
+
 (defn- column-header-style [grid-state column-kw]
   (let [column-width (get-column-width column-kw grid-state)]
     (cond-> (merge common-column-style
