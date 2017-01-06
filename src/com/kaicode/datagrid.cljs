@@ -106,7 +106,20 @@
                                     :min-width column-width
                                     :max-width column-width}
                                    common-column-style)
-                  :on-click sort-column}
+                  :on-click sort-column
+                  :on-context-menu (fn [evt]
+                                     (let [rect   (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
+                                           x      (- (. evt -clientX) 10)
+                                           y      (+ (. evt -clientY) 5)
+                                           x      (- x (. rect -left))
+                                           y      (- y (. rect -top))
+                                           stick  [:a {:href     "#"
+                                                       :on-click (fn [evt]
+                                                                   (js/console.log "clicked \"mark as sticky\""))}
+                                                   "Mark as sticky"]]
+                                       (tily/set-atom! grid-state [:context-menu :content] stick)
+                                       (tily/set-atom! grid-state [:context-menu :coordinate] [x y]))
+                                     (. evt preventDefault))}
             header-txt
             sort-indicator])))
 
@@ -398,7 +411,7 @@
   (r/create-class {:component-will-mount (fn [this-component]
                                            (tily/set-atom! grid-state [:selected-rows] #{})
                                            (tily/set-atom! grid-state [:expanded-rows] #{})
-                                           (tile/set-atom! grid-state [:sticky-columns] #{})
+                                           (tily/set-atom! grid-state [:sticky-columns] #{})
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
