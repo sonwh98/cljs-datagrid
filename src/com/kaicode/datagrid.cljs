@@ -215,6 +215,7 @@
                                                                                                                               constantly)]
                                                                                                        (on-delete-rows rows-to-delete)
 
+                                                                                                       (swap! expanded-rows clojure.set/difference @selected-rows)
                                                                                                        (reset! selected-rows #{})
                                                                                                        (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
                                                                          (swap! grid-state  (fn [grid-state]
@@ -272,6 +273,7 @@
                                                                                                                             constantly)]
                                                                                                      (on-delete-rows rows-to-delete)
 
+                                                                                                     (swap! expanded-rows clojure.set/difference @selected-rows)
                                                                                                      (reset! selected-rows #{})
                                                                                                      (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
                                                                        (tily/set-atom! grid-state [:context-menu :content] delete)
