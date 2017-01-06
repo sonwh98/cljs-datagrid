@@ -64,6 +64,9 @@
                      common-column-style)]
     style))
 
+(defn- mark-as-sticky [grid-state column-kw]
+  (js/console.log "clicked \"mark" (pr-str column-kw) "as sticky\""))
+
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
                :let [[column-kw config] column-config]
@@ -114,8 +117,7 @@
                                            x      (- x (. rect -left))
                                            y      (- y (. rect -top))
                                            stick  [:a {:href     "#"
-                                                       :on-click (fn [evt]
-                                                                   (js/console.log "clicked \"mark as sticky\""))}
+                                                       :on-click (fn [_] (mark-as-sticky grid-state column-kw))}
                                                    "Mark as sticky"]]
                                        (tily/set-atom! grid-state [:context-menu :content] stick)
                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y]))
