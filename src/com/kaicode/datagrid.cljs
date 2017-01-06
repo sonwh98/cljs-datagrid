@@ -89,17 +89,22 @@
 
 (defn- column-header-style [grid-state column-kw]
   (let [column-width (get-column-width column-kw grid-state)]
-    (cond-> (merge common-column-style
-                   {:display   :table-cell
-                    :width     column-width
-                    :min-width column-width
-                    :max-width column-width})
-      (sticky-column? grid-state column-kw)
-      (merge {:position :fixed
-              :left     (+ left-corner-block-width
-                           (get-total-columns-width
-                             grid-state
-                             (get-left-column-kws grid-state column-kw)))}))))
+    (merge
+      common-column-style
+      {:display   :table-cell
+       :width     column-width
+       :min-width column-width
+       :max-width column-width}
+      (if (sticky-column? grid-state column-kw)
+        {:position :fixed
+         :left     (+ left-corner-block-width
+                      (get-total-columns-width
+                        grid-state
+                        (get-left-column-kws grid-state column-kw)))}
+        {:left (get-total-columns-width
+                 grid-state
+                 (filter (partial sticky-column? grid-state)
+                         (get-left-column-kws grid-state column-kw)))}))))
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
