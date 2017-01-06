@@ -65,7 +65,7 @@
     style))
 
 (defn- mark-as-sticky [grid-state column-kw]
-  (js/console.log "clicked \"mark" (pr-str column-kw) "as sticky\""))
+  (swap! grid-state update :sticky-columns conj column-kw))
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
