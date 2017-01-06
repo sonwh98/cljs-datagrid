@@ -95,7 +95,11 @@
                     :min-width column-width
                     :max-width column-width})
       (sticky-column? grid-state column-kw)
-      (merge {:position :fixed}))))
+      (merge {:position :fixed
+              :left     (+ left-corner-block-width
+                           (get-total-columns-width
+                             grid-state
+                             (get-left-column-kws grid-state column-kw)))}))))
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
