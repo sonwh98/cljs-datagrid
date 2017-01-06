@@ -73,6 +73,16 @@
 (defn- sticky-column? [grid-state column-kw]
   (tily/is-contained? column-kw :in (:sticky-columns @grid-state)))
 
+(defn- column-header-style [grid-state column-kw]
+  (let [column-width (get-column-width column-kw grid-state)]
+    (cond-> (merge common-column-style
+                   {:display   :table-cell
+                    :width     column-width
+                    :min-width column-width
+                    :max-width column-width})
+      (sticky-column? grid-state column-kw)
+      (merge {:position :fixed}))))
+
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
                :let [[column-kw config] column-config]
@@ -110,11 +120,7 @@
                :when (:visible? config)]
            [:div {:key      (tily/format "grid-%s-%s-header" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
-                  :style    (merge {:display   :table-cell
-                                    :width     column-width
-                                    :min-width column-width
-                                    :max-width column-width}
-                                   common-column-style)
+                  :style    (column-header-style grid-state column-kw)
                   :on-click sort-column
                   :on-context-menu (fn [evt]
                                      (let [rect   (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
