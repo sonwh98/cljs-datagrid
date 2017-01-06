@@ -78,6 +78,11 @@
   [grid-state column-kw]
   (set (take-while #(not= column-kw %) (map first (:columns-config @grid-state)))))
 
+(defn- get-total-columns-width
+  "Calculates the total width of specified columns"
+  [grid-state column-kws]
+  (apply + (map #(get-column-width % grid-state) column-kws)))
+
 (defn- column-header-style [grid-state column-kw]
   (let [column-width (get-column-width column-kw grid-state)]
     (cond-> (merge common-column-style
