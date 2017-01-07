@@ -392,8 +392,7 @@
         row-data        (fn [row]
                           )
         row-div         (fn [i row]
-                          (let [style {:display :table-row
-                                       :height  row-height}
+                          (let [style {:display :table-row}
                                 style (if (tily/is-contained? i :in @selected-rows)
                                         (assoc style :background-color "#e6faff")
                                         style)]
@@ -405,8 +404,7 @@
                                           :let [render-column-fn (:render-column-fn config)
                                                 k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
                                       ^{:key k}
-                                      [:div {:style (merge (tuple-style grid-state column-kw)
-                                                           {:height row-height})}
+                                      [:div {:style (tuple-style grid-state column-kw)}
                                        (if render-column-fn
                                          [render-column-fn column-kw row grid-state {:height row-height}]
                                          [default-column-render column-kw row grid-state {:height row-height}])]))]))
@@ -434,7 +432,7 @@
      (doall (for [i (range (-> @grid-state :rows count))
                   :let [row (r/cursor grid-state [:rows i])
                         k   (tily/format "grid-%s-%s-extra" id i)]]
-              ^{:key k} [:div {:style {:display :block :height row-height}}
+              ^{:key k} [:div
                          [row-div i row]
                          [extra-row-div i row]]))]))
 
