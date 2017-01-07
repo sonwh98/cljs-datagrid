@@ -130,6 +130,27 @@
                          grid-state
                          (filter (partial sticky-column? grid-state)
                                  (get-left-column-kws grid-state column-kw)))}))))
+
+(defn- column-kw-from-screen-x [grid-state x]
+  (reduce
+    (fn [acc ckw]
+      (let [npos (+ acc (get-column-width ckw grid-state))]
+        (if (<= npos x)
+          npos
+          (reduced ckw))))
+    (- 0 js/document.body.scrollLeft (- left-corner-block-width))
+    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))))
+             (first %))
+           (:columns-config @grid-state))))
+
+(defn- get-first-displayed-not-sticky-column [grid-state]
+  (column-kw-from-screen-x
+    grid-state
+    (get-total-columns-width
+      grid-state
+      (filter (partial sticky-column? grid-state)
+              (map first (:columns-config @grid-state))))))
+
 (defn- sticky-column-headers-foundation
   "Creates a div that will be placed underneath sticky column headers
    to prevent non-sticky column headers from showing through them"
@@ -495,6 +516,12 @@
 
 (defn render [grid-state]
   (r/create-class {:component-will-mount (fn [this-component]
+                                           (.addEventListener js/window "scroll"
+                                            (fn [_]
+                                              (tily/set-atom!
+                                                grid-state
+                                                [:first-displayed-not-sticky-column]
+                                                (get-first-displayed-not-sticky-column grid-state))))
                                            (tily/set-atom! grid-state [:selected-rows] #{})
                                            (tily/set-atom! grid-state [:expanded-rows] #{})
                                            (tily/set-atom! grid-state [:sticky-columns] #{})
