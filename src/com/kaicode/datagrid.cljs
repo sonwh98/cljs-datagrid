@@ -109,12 +109,6 @@
 
 (defn- tuple-style [grid-state column-kw]
   (let [column-width (get-column-width column-kw grid-state)]
-    (js/console.log
-      (pr-str column-kw)
-      (get-total-columns-width
-        grid-state
-        (filter (partial sticky-column? grid-state)
-                (get-left-column-kws grid-state column-kw))))
     (merge
       common-column-style
       {:display   :table-cell
