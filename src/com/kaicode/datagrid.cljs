@@ -5,6 +5,7 @@
             [cljsjs.hammer]))
 
 (defonce left-corner-block-width 60)
+(defonce row-height 40)
 (defonce common-column-style {:display :table-cell
                               :padding 0
                               :border  "1px solid #d9d9d9"})
@@ -219,13 +220,14 @@
      [sticky-column-headers-foundation grid-state]
      (data-column-headers grid-state)]))
 
-(defn- default-column-render [column-kw row grid-state]
+(defn- default-column-render [column-kw row grid-state style]
   (let [id           (-> @grid-state :id)
         column-width (get-column-width column-kw grid-state)
         style        (merge {:width     column-width
                              :min-width column-width
                              :max-width column-width}
-                            common-column-style)
+                            common-column-style
+                            style)
         value        (str (column-kw @row))
         unique       (-> (get-column-config grid-state column-kw) :unique)
         
@@ -390,7 +392,8 @@
         row-data        (fn [row]
                           )
         row-div         (fn [i row]
-                          (let [style {:display :table-row}
+                          (let [style {:display :table-row
+                                       :height  row-height}
                                 style (if (tily/is-contained? i :in @selected-rows)
                                         (assoc style :background-color "#e6faff")
                                         style)]
@@ -402,10 +405,11 @@
                                           :let [render-column-fn (:render-column-fn config)
                                                 k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
                                       ^{:key k}
-                                      [:div {:style (tuple-style grid-state column-kw)}
+                                      [:div {:style (merge (tuple-style grid-state column-kw)
+                                                           {:height row-height})}
                                        (if render-column-fn
-                                         [render-column-fn column-kw row grid-state]
-                                         [default-column-render column-kw row grid-state])]))]))
+                                         [render-column-fn column-kw row grid-state {:height row-height}]
+                                         [default-column-render column-kw row grid-state {:height row-height}])]))]))
         extra-row-data  (fn [row]
                           (doall (for [[column-kw config] columns-config
                                        :when (:visible? config)
@@ -430,7 +434,7 @@
      (doall (for [i (range (-> @grid-state :rows count))
                   :let [row (r/cursor grid-state [:rows i])
                         k   (tily/format "grid-%s-%s-extra" id i)]]
-              ^{:key k} [:div
+              ^{:key k} [:div {:style {:display :block :height row-height}}
                          [row-div i row]
                          [extra-row-div i row]]))]))
 
