@@ -125,8 +125,7 @@
                         (get-left-column-kws grid-state column-kw)))}
 
         (can-mark-column-as-sticky? grid-state column-kw)
-        {:display :table-cell
-         :padding-left (get-total-columns-width
+        {:padding-left (get-total-columns-width
                  grid-state
                  (filter (partial sticky-column? grid-state)
                          (get-left-column-kws grid-state column-kw)))}))))
