@@ -88,6 +88,29 @@
   (every? (partial sticky-column? grid-state)
           (get-left-column-kws grid-state column-kw)))
 
+(defn- column-kw-from-screen-x [grid-state x]
+  (reduce
+    (fn [acc ckw]
+      (let [npos (+ acc (get-column-width ckw grid-state))]
+        (if (<= npos x)
+          npos
+          (reduced ckw))))
+    (- js/document.body.scrollLeft)
+    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))))
+             (first %))
+           (:columns-config @grid-state))))
+
+(defn- get-first-displayed-not-sticky-column [grid-state]
+  (column-kw-from-screen-x
+    grid-state
+    (get-total-columns-width
+      grid-state
+      (filter (partial sticky-column? grid-state)
+              (map first (:columns-config @grid-state))))))
+
+(defn- first-displayed-not-sticky-column? [grid-state column-kw]
+  (= column-kw (:first-displayed-not-sticky-column @grid-state)))
+
 (defn- column-header-style [grid-state column-kw]
   (let [column-width (get-column-width column-kw grid-state)]
     (merge
@@ -96,13 +119,22 @@
        :width     column-width
        :min-width column-width
        :max-width column-width}
-      (if (sticky-column? grid-state column-kw)
+      (cond
+        (sticky-column? grid-state column-kw)
         {:position :fixed
          :z-index  900
          :left     (+ left-corner-block-width
                       (get-total-columns-width
                         grid-state
                         (get-left-column-kws grid-state column-kw)))}
+
+        (first-displayed-not-sticky-column? grid-state column-kw)
+        {:background-color :blue
+         :left (get-total-columns-width
+                 grid-state
+                 (filter (partial sticky-column? grid-state)
+                         (get-left-column-kws grid-state column-kw)))}
+        :else
         {:left (get-total-columns-width
                  grid-state
                  (filter (partial sticky-column? grid-state)
@@ -130,26 +162,6 @@
                          grid-state
                          (filter (partial sticky-column? grid-state)
                                  (get-left-column-kws grid-state column-kw)))}))))
-
-(defn- column-kw-from-screen-x [grid-state x]
-  (reduce
-    (fn [acc ckw]
-      (let [npos (+ acc (get-column-width ckw grid-state))]
-        (if (<= npos x)
-          npos
-          (reduced ckw))))
-    (- 0 js/document.body.scrollLeft (- left-corner-block-width))
-    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))))
-             (first %))
-           (:columns-config @grid-state))))
-
-(defn- get-first-displayed-not-sticky-column [grid-state]
-  (column-kw-from-screen-x
-    grid-state
-    (get-total-columns-width
-      grid-state
-      (filter (partial sticky-column? grid-state)
-              (map first (:columns-config @grid-state))))))
 
 (defn- sticky-column-headers-foundation
   "Creates a div that will be placed underneath sticky column headers
