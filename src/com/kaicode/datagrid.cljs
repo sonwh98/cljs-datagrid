@@ -107,6 +107,35 @@
                  (filter (partial sticky-column? grid-state)
                          (get-left-column-kws grid-state column-kw)))}))))
 
+(defn- tuple-style [grid-state column-kw]
+  (let [column-width (get-column-width column-kw grid-state)]
+    (js/console.log
+      (pr-str column-kw)
+      (get-total-columns-width
+        grid-state
+        (filter (partial sticky-column? grid-state)
+                (get-left-column-kws grid-state column-kw))))
+    (merge
+      common-column-style
+      {:display   :table-cell
+       :width     column-width
+       :min-width column-width
+       :max-width column-width}
+      (cond
+        (sticky-column? grid-state column-kw)
+        {:position :fixed
+         :z-index  900
+         :left     (+ left-corner-block-width
+                      (get-total-columns-width
+                        grid-state
+                        (get-left-column-kws grid-state column-kw)))}
+
+        (can-mark-column-as-sticky? grid-state column-kw)
+        {:display :table-cell
+         :padding-left (get-total-columns-width
+                 grid-state
+                 (filter (partial sticky-column? grid-state)
+                         (get-left-column-kws grid-state column-kw)))}))))
 (defn- sticky-column-headers-foundation
   "Creates a div that will be placed underneath sticky column headers
    to prevent non-sticky column headers from showing through them"
@@ -118,7 +147,7 @@
                                      grid-state
                                      (filter (partial sticky-column? grid-state)
                                              (map first (:columns-config @grid-state))))
-                 :height           40}}])
+                 :height           400}}])
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
@@ -366,14 +395,7 @@
         selected-rows   (r/cursor grid-state [:selected-rows])
         expanded-rows   (r/cursor grid-state [:expanded-rows])
         row-data        (fn [row]
-                          (doall (for [[column-kw config] columns-config
-                                       :when (:visible? config)
-                                       :when (not (:extra? config))
-                                       :let [render-column-fn (:render-column-fn config)
-                                             k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
-                                   (if render-column-fn
-                                     ^{:key k} [render-column-fn column-kw row grid-state]
-                                     ^{:key k} [default-column-render column-kw row grid-state]))))
+                          )
         row-div         (fn [i row]
                           (let [style {:display :table-row}
                                 style (if (tily/is-contained? i :in @selected-rows)
@@ -381,7 +403,16 @@
                                         style)]
                             [:div {:style style}
                              [number-button i grid-state]
-                             (row-data row)]))
+                             (doall (for [[column-kw config] columns-config
+                                          :when (:visible? config)
+                                          :when (not (:extra? config))
+                                          :let [render-column-fn (:render-column-fn config)
+                                                k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
+                                      ^{:key k}
+                                      [:div {:style (tuple-style grid-state column-kw)}
+                                       (if render-column-fn
+                                         [render-column-fn column-kw row grid-state]
+                                         [default-column-render column-kw row grid-state])]))]))
         extra-row-data  (fn [row]
                           (doall (for [[column-kw config] columns-config
                                        :when (:visible? config)
