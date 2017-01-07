@@ -97,6 +97,7 @@
        :max-width column-width}
       (if (sticky-column? grid-state column-kw)
         {:position :fixed
+         :z-index  900
          :left     (+ left-corner-block-width
                       (get-total-columns-width
                         grid-state
@@ -105,6 +106,19 @@
                  grid-state
                  (filter (partial sticky-column? grid-state)
                          (get-left-column-kws grid-state column-kw)))}))))
+
+(defn- sticky-column-headers-foundation
+  "Creates a div that will be placed underneath sticky column headers
+   to prevent non-sticky column headers from showing through them"
+  [grid-state]
+  [:div {:style {:position         :fixed
+                 :z-index          800
+                 :background-color "#fff"
+                 :width            (get-total-columns-width
+                                     grid-state
+                                     (filter (partial sticky-column? grid-state)
+                                             (map first (:columns-config @grid-state))))
+                 :height           40}}])
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
@@ -180,6 +194,7 @@
                                              :style style}]))]
     [:div {:style {:display :table-row}}
      (left-corner-block grid-state left-corner-block-style)
+     [sticky-column-headers-foundation grid-state]
      (data-column-headers grid-state)]))
 
 (defn- default-column-render [column-kw row grid-state]
