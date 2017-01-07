@@ -5,7 +5,7 @@
             [cljsjs.hammer]))
 
 (defonce left-corner-block-width 60)
-(defonce row-height 40)
+(defonce row-height 32)
 (defonce common-column-style {:display :table-cell
                               :padding 0
                               :border  "1px solid #d9d9d9"})
