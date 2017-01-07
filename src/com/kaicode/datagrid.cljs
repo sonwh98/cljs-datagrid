@@ -126,9 +126,9 @@
 
         (can-mark-column-as-sticky? grid-state column-kw)
         {:padding-left (get-total-columns-width
-                 grid-state
-                 (filter (partial sticky-column? grid-state)
-                         (get-left-column-kws grid-state column-kw)))}))))
+                         grid-state
+                         (filter (partial sticky-column? grid-state)
+                                 (get-left-column-kws grid-state column-kw)))}))))
 (defn- sticky-column-headers-foundation
   "Creates a div that will be placed underneath sticky column headers
    to prevent non-sticky column headers from showing through them"
