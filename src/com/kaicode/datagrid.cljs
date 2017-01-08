@@ -100,6 +100,18 @@
              (first %))
            (:columns-config @grid-state))))
 
+(defn- column-west-client-x [grid-state column-kw]
+  (reduce
+    (fn [acc ckw]
+      (let [npos (+ acc (get-column-width ckw grid-state))]
+        (if (= ckw column-kw)
+          (reduced npos)
+          npos)))
+    0
+    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))))
+             (first %))
+           (:columns-config @grid-state))))
+
 (defn- get-first-displayed-not-sticky-column [grid-state]
   (column-kw-from-screen-x
     grid-state
@@ -107,6 +119,20 @@
       grid-state
       (filter (partial sticky-column? grid-state)
               (map first (:columns-config @grid-state))))))
+
+;; rename this :)
+(defn- get-real-column-width [grid-state column-kw]
+  (- (column-west-client-x grid-state column-kw)
+     (get-total-columns-width
+        grid-state
+        (filter (partial sticky-column? grid-state)
+                 (map first (:columns-config @grid-state))))
+     js/document.body.scrollLeft))
+
+(defn- get-real-first-not-sticky-column-width [grid-state]
+  (get-real-column-width
+    grid-state
+    (get-first-displayed-not-sticky-column grid-state)))
 
 (defn- first-displayed-not-sticky-column? [grid-state column-kw]
   (= column-kw (:first-displayed-not-sticky-column @grid-state)))
@@ -129,11 +155,13 @@
                         (get-left-column-kws grid-state column-kw)))}
 
         (first-displayed-not-sticky-column? grid-state column-kw)
-        {:background-color :blue
-         :left (get-total-columns-width
-                 grid-state
-                 (filter (partial sticky-column? grid-state)
-                         (get-left-column-kws grid-state column-kw)))}
+        (merge
+          {:background-color :blue
+           :left (get-total-columns-width
+                   grid-state
+                   (filter (partial sticky-column? grid-state)
+                           (get-left-column-kws grid-state column-kw)))}
+          {})
         :else
         {:left (get-total-columns-width
                  grid-state
@@ -530,10 +558,9 @@
   (r/create-class {:component-will-mount (fn [this-component]
                                            (.addEventListener js/window "scroll"
                                             (fn [_]
-                                              (tily/set-atom!
-                                                grid-state
-                                                [:first-displayed-not-sticky-column]
-                                                (get-first-displayed-not-sticky-column grid-state))))
+                                              (let [first-displayed-not-sticky-column (get-first-displayed-not-sticky-column grid-state)]
+                                                (tily/set-atom! grid-state [:first-displayed-not-sticky-column] first-displayed-not-sticky-column)
+                                                (js/console.log (get-real-first-not-sticky-column-width grid-state)))))
                                            (tily/set-atom! grid-state [:selected-rows] #{})
                                            (tily/set-atom! grid-state [:expanded-rows] #{})
                                            (tily/set-atom! grid-state [:sticky-columns] #{})
