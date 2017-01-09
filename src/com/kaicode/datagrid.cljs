@@ -252,11 +252,8 @@
 ;; END --------------------------------------------------------
 
 
-;; TODO fix this :)
 (defn- column-header-style [grid-state column-kw column-config]
   (let [column-width (get-in-columns-config grid-state column-kw [:real-width])];#_(get-column-width column-kw grid-state)]
- ;   (js/console.log "first nonsticky" (pr-str (get-first-not-temporarily-hidden-nonsticky-column grid-state)))
-    (js/console.log (pr-str column-kw) "width" (pr-str column-width))
     (merge
       common-column-style
       {:display       :table-cell
@@ -265,60 +262,7 @@
        :text-overflow :ellipsis
        :width         column-width
        :min-width     column-width
-       :max-width     column-width}
-      #_(cond
-        ;; pierwsza tymczasowo ukryta kolumna
-        (and (:temporarily-hidden? column-config)
-             (not-empty (:sticky-columns @grid-state))
-             (= column-kw (get-first-nonsticky-column grid-state)))
-        (do (js/console.log "JEST" (pr-str column-kw))
-           {:width     0
-            :min-width 0
-            :max-width 0
-            :display   :none})
-
-
-
-     ;   (first-displayed-not-sticky-column? grid-state column-kw)
-     ;   {:background-color :red}
-
-        (and (not (:temporarily-hidden? column-config))
-             (not-empty (:sticky-columns @grid-state))
-             (= column-kw (get-first-not-temporarily-hidden-nonsticky-column grid-state)))
-        {:width     (:first-displayed-not-sticky-column-width @grid-state)
-         :background-color :yellow
-         :min-width (:first-displayed-not-sticky-column-width @grid-state)
-         :max-width (:first-displayed-not-sticky-column-width @grid-state)}
-
-        (:temporarily-hidden? column-config)
-        {:width     10
-         :min-width 10
-         :max-width 10
-         :display   :none}
-
-        
-      ))))
-
-(defn- column-inside-header-style [grid-state column-kw]
-  (let [column-width (get-column-width column-kw grid-state)]
-    (merge
-      common-column-style
-      {:width     column-width
-       :min-width column-width
-       :max-width column-width}
-      (cond
-        (first-displayed-not-sticky-column? grid-state column-kw)
-          {:position :absolute
-           :top 0
-           :text-overflow :ellipsis
-           :overflow :hidden
-           :left       (+ (- (get-column-width column-kw grid-state) (:first-displayed-not-sticky-column-width @grid-state)) (extra-width-per-visible-column grid-state))
-           :width      (- (:first-displayed-not-sticky-column-width @grid-state) (extra-width-per-visible-column grid-state))
-           :min-width  (:first-displayed-not-sticky-column-width @grid-state)
-           :max-width  (:first-displayed-not-sticky-column-width @grid-state)}
-
-        :else
-        {}))))
+       :max-width     column-width})))
 
 (defn- tuple-style [grid-state column-kw]
   (let [column-width (get-in-columns-config grid-state column-kw [:real-width])]
@@ -331,42 +275,6 @@
        :width         column-width
        :min-width     column-width
        :max-width     column-width})))
-
-(defn- tuple-inside-style [grid-state column-kw]
-  (let [column-width (get-column-width column-kw grid-state)]
-    (cond->
-      (merge
-        common-column-style
-        {:display   :table-cell
-         :width     (get-column-width column-kw grid-state)
-         :min-width (get-column-width column-kw grid-state)
-         :max-width (get-column-width column-kw grid-state)})
-
-      (sticky-column? grid-state column-kw)
-      (merge {:border "2px solid yellow"
-              :z-index  900
-            ;  :padding-left   
-           ; (:first-displayed-not-sticky-column-width @grid-state)
-
-              #_(+ left-corner-block-width
-                           (get-total-columns-width
-                             grid-state
-                             (get-left-column-kws grid-state column-kw)))})
-
-   ;   (can-mark-column-as-sticky? grid-state column-kw)
-   ;   (merge {:padding-left (get-total-columns-width
-   ;                           grid-state
-   ;                           (filter (partial sticky-column? grid-state)
-   ;                                   (get-left-column-kws grid-state column-kw)))})
-
-      (first-displayed-not-sticky-column? grid-state column-kw)
-      (merge {:background-color :red
-              :position :absolute
- ;             :width (get-column-width grid-state grid-state)
- :width 100
-              :left (+ 200 (get-column-width column-kw grid-state) (:first-displayed-not-sticky-column-width @grid-state) (extra-width-per-visible-column grid-state))}))))
-
-
 
 (defn- calculate-bucket-distribution [grid-state buckets n]
   (let [sticky-columns-count (count (get-sticky-columns grid-state))]
