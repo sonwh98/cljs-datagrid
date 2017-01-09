@@ -89,62 +89,61 @@
   (every? (partial sticky-column? grid-state)
           (get-left-column-kws grid-state column-kw)))
 
-(defn- column-kw-from-screen-x [grid-state x]
-  (reduce
-    (fn [acc ckw]
-      (js/console.log "trying" (pr-str ckw))
-      (let [npos (+ acc (get-column-width ckw grid-state))]
-        (if (<= npos x)
-          npos
-          (reduced ckw))))
-    (- js/document.body.scrollLeft)
-    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))) (not (:temporarily-hidden? (second %))))
-             (first %))
-           (:columns-config @grid-state))))
 
-(defn- temporarily-hidden-column? [grid-state column-kw]
-   (first          (filter (fn [[ckw cconfig :as e]]
-                       (when (= ckw column-kw)
-                         (:temporarily-hidden? cconfig)))
-                   (:columns-config @grid-state))))
+;(defn- column-kw-from-screen-x [grid-state x]
+;  (reduce
+;    (fn [acc ckw]
+;      (js/console.log "trying" (pr-str ckw))
+;      (let [npos (+ acc (get-column-width ckw grid-state))]
+;        (if (<= npos x)
+;          npos
+;          (reduced ckw))))
+;    (- js/document.body.scrollLeft)
+;    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))) (not (:temporarily-hidden? (second %))))
+;             (first %))
+;           (:columns-config @grid-state))))
 
+;(defn- temporarily-hidden-column? [grid-state column-kw]
+;   (first          (filter (fn [[ckw cconfig :as e]]
+;                       (when (= ckw column-kw)
+;                         (:temporarily-hidden? cconfig)))
+;                   (:columns-config @grid-state))))
 
-(defn- column-west-client-x [grid-state column-kw]
-  (reduce
-    (fn [acc ckw]
-      (let [npos (+ acc (get-column-width ckw grid-state))]
-        (if (= ckw column-kw)
-          (reduced npos)
-          npos)))
-    0
-    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))) (not (:temporarily-hidden? (second %))))
-             (first %))
-           (:columns-config @grid-state))))
+;(defn- column-west-client-x [grid-state column-kw]
+;  (reduce
+;;    (fn [acc ckw]
+;      (let [npos (+ acc (get-column-width ckw grid-state))]
+;        (if (= ckw column-kw)
+;          (reduced npos)
+;          npos)))
+;    0
+;    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))) (not (:temporarily-hidden? (second %))))
+;             (first %))
+;           (:columns-config @grid-state))))
 
-(defn- get-first-displayed-not-sticky-column [grid-state]
-  (js/console.log
-    (pr-str (map (fn [e] [(sticky-column? grid-state (first e))
-                          (:temporarily-hidden? (second e))])
-                 (:columns-config @grid-state))))
-  (ffirst
-    (filter (fn [column]
-              (and (not (sticky-column? grid-state (first column)))
-                   (not (:temporarily-hidden? (second column)))))
-            (:columns-config @grid-state))))
+;(defn- get-first-displayed-not-sticky-column [grid-state]
+;  (js/console.log
+;    (pr-str (map (fn [e] [(sticky-column? grid-state (first e))
+;                          (:temporarily-hidden? (second e))])
+;                 (:columns-config @grid-state))))
+;  (ffirst
+;    (filter (fn [column]
+;              (and (not (sticky-column? grid-state (first column)))
+;                   (not (:temporarily-hidden? (second column)))))
+;            (:columns-config @grid-state))))
 
-;; rename this :)
-(defn- get-real-column-width [grid-state column-kw]
-  (let [v (- (column-west-client-x grid-state column-kw)
-             (get-total-columns-width
-               grid-state
-               (map (complement (partial temporarily-hidden-column? grid-state))
-                    (map first (:columns-config @grid-state))))
-             js/document.body.scrollLeft)]
-    (js/console.log v)
-    v))
+;(defn- get-real-column-width [grid-state column-kw]
+;  (let [v (- (column-west-client-x grid-state column-kw)
+;             (get-total-columns-width
+;               grid-state
+;               (map (complement (partial temporarily-hidden-column? grid-state))
+;                    (map first (:columns-config @grid-state))))
+;             js/document.body.scrollLeft)]
+;    (js/console.log v)
+;    v))
 
-(defn- first-displayed-not-sticky-column? [grid-state column-kw]
-  (= column-kw (:first-displayed-not-sticky-column @grid-state)))
+;(defn- first-displayed-not-sticky-column? [grid-state column-kw]
+;  (= column-kw (:first-displayed-not-sticky-column @grid-state)))
 
 (defn- get-nonsticky-columns [grid-state]
   (drop-while #(sticky-column? grid-state %) (map first (:columns-config @grid-state))))
@@ -152,16 +151,16 @@
 (defn- get-first-nonsticky-column [grid-state]
   (first (get-nonsticky-columns grid-state)))
 
-(defn- get-first-not-temporarily-hidden-nonsticky-column [grid-state]
-  (first
-    (filter (complement (partial temporarily-hidden-column? grid-state))
-            (get-nonsticky-columns grid-state))))
+;(defn- get-first-not-temporarily-hidden-nonsticky-column [grid-state]
+;  (first
+;    (filter (complement (partial temporarily-hidden-column? grid-state))
+;            (get-nonsticky-columns grid-state))))
 
 
-(defn- get-real-first-not-sticky-column-width [grid-state]
-  (get-real-column-width
-    grid-state
-    (get-first-nonsticky-column grid-state)))
+;(defn- get-real-first-not-sticky-column-width [grid-state]
+;  (get-real-column-width
+;    grid-state
+;    (get-first-nonsticky-column grid-state)))
 
 (defn assoc-in-columns-config [grid-state column-kw ks v]
   (swap! grid-state assoc :columns-config
