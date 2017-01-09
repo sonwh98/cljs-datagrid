@@ -223,7 +223,6 @@
   (swap! grid-state assoc :columns-config
          (vec
            (map (fn [[column-kw column-config :as column] width]
-                  (js/console.log (pr-str column-kw))
                   (assoc-in column [1 :real-width] width))
                 (:columns-config @grid-state)
                 (calculate-width-distribution grid-state n)))))
