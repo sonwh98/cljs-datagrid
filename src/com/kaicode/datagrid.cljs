@@ -176,37 +176,6 @@
     grid-state
     (get-first-nonsticky-column grid-state)))
 
-
-(defn- column-header-style-old [grid-state column-kw]
-  (let [column-width (get-column-width column-kw grid-state)]
-    (merge
-      common-column-style
-      {:display   :table-cell
-       :width     column-width
-       :min-width column-width
-       :max-width column-width}
-      (cond
-        (sticky-column? grid-state column-kw)
-        {:position :fixed
-         :z-index  900
-         :left     (+ left-corner-block-width
-                      (get-total-columns-width
-                        grid-state
-                        (get-left-column-kws grid-state column-kw)))}
-
-        (first-displayed-not-sticky-column? grid-state column-kw)
-        {:left (get-total-columns-width
-                 grid-state
-                 (filter (partial sticky-column? grid-state)
-                         (get-left-column-kws grid-state column-kw)))}
-
-        :else
-        {:left (get-total-columns-width
-                 grid-state
-                 (filter (partial sticky-column? grid-state)
-                         (get-left-column-kws grid-state column-kw)))}))))
-
-
 (defn assoc-in-columns-config [grid-state column-kw ks v]
   (swap! grid-state assoc :columns-config
          (->> (:columns-config @grid-state)
