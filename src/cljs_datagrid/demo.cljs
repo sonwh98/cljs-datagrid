@@ -6,8 +6,9 @@
 
 (defn init-db []
   (let [weight        (/ 1 3)
-        common-config {:visible?      true
-                       :width-weight weight}
+        common-config {:visible?            true
+                       :temporarily-hidden? false
+                       :width-weight        weight}
         people        [{:person/first-name "Sonny"
                         :person/last-name  "Su"
                         :person/email      "sonny.su@foobar.com"
