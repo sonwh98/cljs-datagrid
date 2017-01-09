@@ -8,7 +8,6 @@
 (defonce common-column-style {:display :table-cell
                               :padding 0
                               :border  "1px solid #d9d9d9"})
-(defonce row-height 40)
 (defn get-column-config [grid-state column-kw]
   (->> @grid-state :columns-config (filter #(= (first %) column-kw)) first second))
 
@@ -202,7 +201,6 @@
        :width         column-width
        :min-width     column-width
        :max-width     column-width})))
-
 (defn- calculate-bucket-distribution [grid-state buckets n]
   (let [sticky-columns-count (count (get-sticky-columns grid-state))]
     (loop [buckets-left (vec (drop sticky-columns-count buckets))
@@ -327,14 +325,14 @@
      (left-corner-block grid-state left-corner-block-style)
      (data-column-headers grid-state)]))
 
-(defn- default-column-render [column-kw row grid-state style]
+(defn- default-column-render [column-kw row grid-state state]
   (let [id           (-> @grid-state :id)
         column-width (get-column-width column-kw grid-state)
         style        (merge {:width     column-width
                              :min-width column-width
                              :max-width column-width}
                             common-column-style
-                            style)
+                            state)
         value        (str (column-kw @row))
         unique       (-> (get-column-config grid-state column-kw) :unique)
         
@@ -498,7 +496,14 @@
         selected-rows   (r/cursor grid-state [:selected-rows])
         expanded-rows   (r/cursor grid-state [:expanded-rows])
         row-data        (fn [row]
-                          )
+                          (doall (for [[column-kw config] columns-config
+                                          :when (:visible? config)
+                                          :when (not (:extra? config))
+                                          :let [render-column-fn (:render-column-fn config)
+                                                k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
+                                   (if render-column-fn
+                                     ^{:key k} [render-column-fn column-kw row grid-state (tuple-style grid-state column-kw)]
+                                     ^{:key k} [default-column-render column-kw row grid-state (tuple-style grid-state column-kw)]))))
         row-div         (fn [i row]
                           (let [style {:display :table-row}
                                 style (if (tily/is-contained? i :in @selected-rows)
@@ -506,15 +511,7 @@
                                         style)]
                             [:div {:style style}
                              [number-button i grid-state]
-                             (doall (for [[column-kw config] columns-config
-                                          :when (:visible? config)
-                                          :when (not (:extra? config))
-                                          :let [render-column-fn (:render-column-fn config)
-                                                k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
-                                      ^{:key k} [:div {:style (tuple-style grid-state column-kw)}
-                                                 (if render-column-fn
-                                                   [render-column-fn column-kw row grid-state {:height row-height}]
-                                                   [default-column-render column-kw row grid-state {:height row-height}])]))]))
+                             (row-data row)]))
         extra-row-data  (fn [row]
                           (doall (for [[column-kw config] columns-config
                                        :when (:visible? config)
@@ -522,8 +519,8 @@
                                        :let [render-column-fn (:render-column-fn config)
                                              k                (tily/format "grid-%s-%s-%s-extra" id (:system/id @row) column-kw)]]
                                   (if render-column-fn
-                                     ^{:key k} [render-column-fn column-kw row grid-state]
-                                     ^{:key k} [default-column-render column-kw row grid-state]))))
+                                     ^{:key k} [render-column-fn column-kw row grid-state {}]
+                                     ^{:key k} [default-column-render column-kw row grid-state {}]))))
         extra-row-div   (fn [i row]
                           [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
                                           {:display :none})}
@@ -608,7 +605,7 @@
   (r/create-class {:component-will-mount (fn [this-component]
                                            (.addEventListener js/window "scroll"
                                             (fn [_]
-                                              (when (not-empty (get-sticky-columns grid-state))
+                                              (when (seq (get-sticky-columns grid-state))
                                                 (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
                                                 (update-column-width-distribution grid-state js/document.body.scrollLeft))))
                                            (tily/set-atom! grid-state [:selected-rows] #{})
