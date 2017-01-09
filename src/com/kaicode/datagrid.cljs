@@ -287,7 +287,6 @@
           (apply conj acc-buckets (- (first buckets-left) n) (rest buckets-left))
           (apply conj acc-buckets (rest buckets-left)))))))
 
-;; better use r/atoms for this
 (defn calculate-width-distribution [grid-state n]
   (calculate-bucket-distribution
     grid-state
@@ -685,17 +684,10 @@
                                             (fn [_]
                                               (when (not-empty (get-sticky-columns grid-state))
                                                 (let [first-displayed-not-sticky-column (get-first-displayed-not-sticky-column grid-state)]
-                                                  (tily/set-atom! grid-state [:datagrid-table-left-margin] js/document.body.scrollLeft)
+                                                  (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
                                                   (tily/set-atom! grid-state [:first-displayed-not-sticky-column] first-displayed-not-sticky-column)
                                                   (tily/set-atom! grid-state [:first-displayed-not-sticky-column-width] (get-real-first-not-sticky-column-width grid-state))
                                                                                                  (update-column-width-distribution grid-state js/document.body.scrollLeft)
-                                                  ;; all columns should have :real-width, noy only sticky
-                                                  ;(assoc-in-columns-config grid-state
-                                                  ;                         first-displayed-not-sticky-column
-                                                  ;                         [:real-width]
-                                                  ;                         (get-real-first-not-sticky-column-width
-                                                  ;                           grid-state))
-                                                 ; (js/console.log "resize - real-width"          (pr-str (map :real-width (map second (:columns-config @grid-state)))))
                                                   ))))
                                            (tily/set-atom! grid-state [:selected-rows] #{})
                                            (tily/set-atom! grid-state [:expanded-rows] #{})
@@ -706,7 +698,7 @@
                                               (set-initial-column-widths grid-state)
                                               (vswap! initial-width-set? not))
                                            [:div {:style {:width 2000}}
-                                            [:div#datagrid-table {:style    {:margin-left (:datagrid-table-left-margin @grid-state)}
+                                            [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)}
                                                                   :on-click #(when (-> @grid-state :context-menu :content)
                                                                                (tily/set-atom! grid-state [:context-menu :content] nil))}
                                              [context-menu grid-state]
