@@ -217,10 +217,10 @@
 (defn assoc-in-columns-config [grid-state column-kw ks v]
   (swap! grid-state assoc :columns-config
          (vec
-           (map (fn [col]
-                  (if (= (first col) column-kw)
-                    (assoc-in col (concat [1] ks) v)
-                    col))
+           (map (fn [column]
+                  (if (= (first column) column-kw)
+                    (assoc-in column (concat [1] ks) v)
+                    column))
                  (:columns-config @grid-state))))) 
 
 (defn get-in-columns-config [grid-state column-kw ks]
@@ -228,29 +228,6 @@
           (when (= ckw column-kw)
             (get-in cconfig ks)))
           (:columns-config @grid-state)))
-
-;; TODO use this fn above
-(defn- mark-as-temporarily-hidden [grid-state column-kw]
-  (swap! grid-state assoc :columns-config
-           (vec
-             (map (fn [[ckw _ :as e]]
-                    (if (= ckw column-kw)
-                      (assoc-in e [1 :temporarily-hidden?] true)
-                      e))
-                   (:columns-config @grid-state)))))
-
-(defn- unmark-as-temporarily-hidden [grid-state column-kw]
-  (swap! grid-state assoc :columns-config
-           (vec
-             (map (fn [[ckw _ :as e]]
-                    (if (= ckw column-kw)
-                      (assoc-in e [1 :temporarily-hidden?] false)
-                      e))
-                   (:columns-config @grid-state)))))
-
-
-;; END --------------------------------------------------------
-
 
 (defn- column-header-style [grid-state column-kw column-config]
   (let [column-width (get-in-columns-config grid-state column-kw [:real-width])];#_(get-column-width column-kw grid-state)]
