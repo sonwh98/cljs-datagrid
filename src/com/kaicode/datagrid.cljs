@@ -122,18 +122,6 @@
              (first %))
            (:columns-config @grid-state))))
 
-
-(comment
-  (defn- get-first-displayed-not-sticky-column [grid-state]
-    (let [k (column-kw-from-screen-x
-      grid-state
-      (get-total-columns-width
-        grid-state
-        (filter (partial sticky-column? grid-state)
-                (map first (:columns-config @grid-state)))))]
-      (js/console.log "first non-sticky: width" (pr-str k))
-      k)))
-
 (defn- get-first-displayed-not-sticky-column [grid-state]
   (js/console.log
     (pr-str (map (fn [e] [(sticky-column? grid-state (first e))
