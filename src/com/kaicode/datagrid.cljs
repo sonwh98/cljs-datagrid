@@ -207,13 +207,6 @@
                          (get-left-column-kws grid-state column-kw)))}))))
 
 
-;; calling this functions makes rendering column headers O(n^2), not good.
-;; it would be better to create a cache (i.e. a hash-set of mappings of 
-;; columns-kws in :columns-config to indices of column-kws in :columns-config)
-;; once and then reuse it here
-
-;; TEMPORARY, WILL BE REPLACD !!! BEGIN ------------------------
-
 (defn assoc-in-columns-config [grid-state column-kw ks v]
   (swap! grid-state assoc :columns-config
          (->> (:columns-config @grid-state)
