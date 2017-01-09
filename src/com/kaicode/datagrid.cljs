@@ -216,12 +216,12 @@
 
 (defn assoc-in-columns-config [grid-state column-kw ks v]
   (swap! grid-state assoc :columns-config
-         (vec
-           (map (fn [column]
-                  (if (= (first column) column-kw)
-                    (assoc-in column (concat [1] ks) v)
-                    column))
-                 (:columns-config @grid-state))))) 
+         (->> (:columns-config @grid-state)
+              (map (fn [[ckw _ :as column]]
+                     (if (= ckw column-kw)
+                       (assoc-in column (concat [1] ks) v)
+                       column)))
+              vec)))
 
 (defn get-in-columns-config [grid-state column-kw ks]
   (some (fn [[ckw cconfig]]
