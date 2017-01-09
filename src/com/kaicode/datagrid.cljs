@@ -609,12 +609,8 @@
                                            (.addEventListener js/window "scroll"
                                             (fn [_]
                                               (when (not-empty (get-sticky-columns grid-state))
-                                                (let [first-displayed-not-sticky-column (get-first-displayed-not-sticky-column grid-state)]
-                                                  (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
-                                                  (tily/set-atom! grid-state [:first-displayed-not-sticky-column] first-displayed-not-sticky-column)
-                                                  (tily/set-atom! grid-state [:first-displayed-not-sticky-column-width] (get-real-first-not-sticky-column-width grid-state))
-                                                                                                 (update-column-width-distribution grid-state js/document.body.scrollLeft)
-                                                  ))))
+                                                (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
+                                                (update-column-width-distribution grid-state js/document.body.scrollLeft))))
                                            (tily/set-atom! grid-state [:selected-rows] #{})
                                            (tily/set-atom! grid-state [:expanded-rows] #{})
                                            (tily/set-atom! grid-state [:sticky-columns] #{})
