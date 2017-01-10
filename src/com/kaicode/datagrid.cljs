@@ -279,7 +279,7 @@
                                  :width     left-corner-block-width
                                  :min-width left-corner-block-width
                                  :max-width left-corner-block-width
-                                 :position :relative
+                                 :position  :relative
                                  :z-index   9999
                                  :padding   0}
         left-corner-block       (or (:left-corner-block @grid-state)
@@ -576,6 +576,7 @@
                                            (tily/set-atom! grid-state [:sticky-columns] #{})
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render       (fn [grid-state]
+                                           [:div {:style {:width (get-content-width grid-state)}}
                                            [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)}
                                                                  :on-click #(when (-> @grid-state :context-menu :content)
                                                                               (tily/set-atom! grid-state [:context-menu :content] nil))}
@@ -583,4 +584,4 @@
                                             [context-menu grid-state]
                                             [column-headers grid-state]
                                             [number-buttons-foundation grid-state]
-                                            [rows grid-state]])}))
+                                            [rows grid-state]]])}))
