@@ -256,8 +256,8 @@
                                                                      (mark-column-as-not-sticky grid-state column-kw)
                                                                      (mark-column-as-sticky grid-state column-kw)))}
                                                    (if (sticky-column? grid-state column-kw)
-                                                     "Mark as not sticky"
-                                                     "Mark as sticky")]]
+                                                     "non-sticky"
+                                                     "sticky")]]
                                        (tily/set-atom! grid-state [:context-menu :content]
                                          (when (or (sticky-column? grid-state column-kw)
                                                    (can-mark-column-as-sticky? grid-state column-kw))
