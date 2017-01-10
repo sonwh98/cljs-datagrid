@@ -86,8 +86,14 @@
   (apply + (map #(get-column-width % grid-state) column-kws)))
 
 (defn- can-mark-column-as-sticky? [grid-state column-kw]
-  (every? (partial sticky-column? grid-state)
-          (get-left-column-kws grid-state column-kw)))
+  (and (not (sticky-column? grid-state column-kw))
+       (every? (partial sticky-column? grid-state)
+               (get-left-column-kws grid-state column-kw))))
+
+(defn- can-mark-column-as-non-sticky? [grid-state column-kw]
+  (and (sticky-column? grid-state column-kw)
+       (= (get-left-column-kws grid-state column-kw)
+          (disj (get-sticky-columns grid-state) column-kw))))
 
 (defn- get-nonsticky-columns [grid-state]
   (drop-while (partial sticky-column? grid-state)
@@ -257,10 +263,12 @@
                                                                    :on-click (fn [_] (mark-column-as-not-sticky grid-state column-kw))}
                                                                "non-sticky"]]
                                        (tily/set-atom! grid-state [:context-menu :content]
-                                         (when (can-mark-column-as-sticky? grid-state column-kw)
-                                           (if (sticky-column? grid-state column-kw)
-                                             mark-as-non-sticky
-                                             mark-as-sticky)))
+                                         (cond
+                                           (can-mark-column-as-non-sticky? grid-state column-kw)
+                                           mark-as-non-sticky
+
+                                           (can-mark-column-as-sticky? grid-state column-kw)
+                                           mark-as-sticky))
                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y]))
                                      (. evt preventDefault))}
                header-txt
