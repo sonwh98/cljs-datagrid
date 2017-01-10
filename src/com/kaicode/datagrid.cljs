@@ -66,7 +66,7 @@
 (defn- mark-column-as-sticky [grid-state column-kw]
   (swap! grid-state update :sticky-columns conj column-kw))
 
-(defn- mark-column-as-not-sticky [grid-state column-kw]
+(defn- mark-column-as-non-sticky [grid-state column-kw]
   (swap! grid-state update :sticky-columns disj column-kw))
 
 (defn- get-sticky-columns [grid-state]
@@ -95,7 +95,7 @@
        (= (get-left-column-kws grid-state column-kw)
           (disj (get-sticky-columns grid-state) column-kw))))
 
-(defn- get-nonsticky-columns [grid-state]
+(defn- get-non-sticky-columns [grid-state]
   (drop-while (partial sticky-column? grid-state)
               (map first (:columns-config @grid-state))))
 
@@ -260,15 +260,15 @@
                                                                    :on-click (fn [_] (mark-column-as-sticky grid-state column-kw))}
                                                                "sticky"]
                                            mark-as-non-sticky [:a {:href     "#"
-                                                                   :on-click (fn [_] (mark-column-as-not-sticky grid-state column-kw))}
+                                                                   :on-click (fn [_] (mark-column-as-non-sticky grid-state column-kw))}
                                                                "non-sticky"]]
                                        (tily/set-atom! grid-state [:context-menu :content]
                                          (cond
-                                           (can-mark-column-as-non-sticky? grid-state column-kw)
-                                           mark-as-non-sticky
-
                                            (can-mark-column-as-sticky? grid-state column-kw)
-                                           mark-as-sticky))
+                                           mark-as-sticky
+                                           
+                                           (can-mark-column-as-non-sticky? grid-state column-kw)
+                                           mark-as-non-sticky))
                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y]))
                                      (. evt preventDefault))}
                header-txt
