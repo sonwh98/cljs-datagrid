@@ -89,62 +89,6 @@
   (every? (partial sticky-column? grid-state)
           (get-left-column-kws grid-state column-kw)))
 
-
-;(defn- column-kw-from-screen-x [grid-state x]
-;  (reduce
-;    (fn [acc ckw]
-;      (js/console.log "trying" (pr-str ckw))
-;      (let [npos (+ acc (get-column-width ckw grid-state))]
-;        (if (<= npos x)
-;          npos
-;          (reduced ckw))))
-;    (- js/document.body.scrollLeft)
-;    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))) (not (:temporarily-hidden? (second %))))
-;             (first %))
-;           (:columns-config @grid-state))))
-
-;(defn- temporarily-hidden-column? [grid-state column-kw]
-;   (first          (filter (fn [[ckw cconfig :as e]]
-;                       (when (= ckw column-kw)
-;                         (:temporarily-hidden? cconfig)))
-;                   (:columns-config @grid-state))))
-
-;(defn- column-west-client-x [grid-state column-kw]
-;  (reduce
-;;    (fn [acc ckw]
-;      (let [npos (+ acc (get-column-width ckw grid-state))]
-;        (if (= ckw column-kw)
-;          (reduced npos)
-;          npos)))
-;    0
-;    (keep #(when (and (:visible? (second %)) (not (:extra? (second %))) (not (:temporarily-hidden? (second %))))
-;             (first %))
-;           (:columns-config @grid-state))))
-
-;(defn- get-first-displayed-not-sticky-column [grid-state]
-;  (js/console.log
-;    (pr-str (map (fn [e] [(sticky-column? grid-state (first e))
-;                          (:temporarily-hidden? (second e))])
-;                 (:columns-config @grid-state))))
-;  (ffirst
-;    (filter (fn [column]
-;              (and (not (sticky-column? grid-state (first column)))
-;                   (not (:temporarily-hidden? (second column)))))
-;            (:columns-config @grid-state))))
-
-;(defn- get-real-column-width [grid-state column-kw]
-;  (let [v (- (column-west-client-x grid-state column-kw)
-;             (get-total-columns-width
-;               grid-state
-;               (map (complement (partial temporarily-hidden-column? grid-state))
-;                    (map first (:columns-config @grid-state))))
-;             js/document.body.scrollLeft)]
-;    (js/console.log v)
-;    v))
-
-;(defn- first-displayed-not-sticky-column? [grid-state column-kw]
-;  (= column-kw (:first-displayed-not-sticky-column @grid-state)))
-
 (defn- get-nonsticky-columns [grid-state]
   (drop-while #(sticky-column? grid-state %) (map first (:columns-config @grid-state))))
 
@@ -155,12 +99,6 @@
 ;  (first
 ;    (filter (complement (partial temporarily-hidden-column? grid-state))
 ;            (get-nonsticky-columns grid-state))))
-
-
-;(defn- get-real-first-not-sticky-column-width [grid-state]
-;  (get-real-column-width
-;    grid-state
-;    (get-first-nonsticky-column grid-state)))
 
 (defn assoc-in-columns-config [grid-state column-kw ks v]
   (swap! grid-state assoc :columns-config
@@ -175,10 +113,29 @@
   (some (fn [[ckw cconfig]]
           (when (= ckw column-kw)
             (get-in cconfig ks)))
-          (:columns-config @grid-state)))
+        (:columns-config @grid-state)))
+
+(defn get-column-idx [grid-state column-kw]
+  (first
+    (keep-indexed (fn [i [ckw _]]
+                    (when (= ckw column-kw)
+                      i))
+                    (:columns-config @grid-state))))
+
+(defn calculate-column-header-z-index [grid-state column-kw]
+  (- (if (sticky-column? grid-state column-kw)
+       9900
+       5500)
+     (get-column-idx grid-state column-kw)))
+
+(defn calculate-tuple-z-index [grid-state column-kw]
+  (- (if (sticky-column? grid-state column-kw)
+       9800
+       5400)
+     (get-column-idx grid-state column-kw)))
 
 (defn- column-header-style [grid-state column-kw column-config]
-  (let [column-width (get-in-columns-config grid-state column-kw [:real-width])];#_(get-column-width column-kw grid-state)]
+  (let [column-width (get-column-width column-kw grid-state)]
     (merge
       common-column-style
       {:display       :table-cell
@@ -187,10 +144,16 @@
        :text-overflow :ellipsis
        :width         column-width
        :min-width     column-width
-       :max-width     column-width})))
+       :max-width     column-width
+       :z-index       (calculate-column-header-z-index grid-state column-kw)
+       :position      :relative}
+      (when (sticky-column? grid-state column-kw)
+        {:background-color :gray})
+      (when (not= 0 (:left-margin column-config))
+        {:left     (:left-margin column-config)}))))
 
-(defn- tuple-style [grid-state column-kw]
-  (let [column-width (get-in-columns-config grid-state column-kw [:real-width])]
+(defn- tuple-style [grid-state column-kw column-config]
+  (let [column-width (get-column-width column-kw grid-state)]
     (merge
       common-column-style
       {:display       :table-cell
@@ -199,8 +162,16 @@
        :text-overflow :ellipsis
        :width         column-width
        :min-width     column-width
-       :max-width     column-width})))
-(defn- calculate-bucket-distribution [grid-state buckets n]
+       :max-width     column-width
+       :position      :relative
+       :background-color "#fff"
+       :z-index       (calculate-tuple-z-index grid-state column-kw)}
+      (when (sticky-column? grid-state column-kw)
+        {:background-color "#f6f6f6"})
+      (when (not= 0 (:left-margin column-config))
+        {:left (:left-margin column-config)}))))
+
+(defn- calculate-bucket-distributioa-oldn [grid-state buckets n]
   (let [sticky-columns-count (count (get-sticky-columns grid-state))]
     (loop [buckets-left (vec (drop sticky-columns-count buckets))
            n n
@@ -211,12 +182,46 @@
           (apply conj acc-buckets (- (first buckets-left) n) (rest buckets-left))
           (apply conj acc-buckets (rest buckets-left)))))))
 
+(defn- calculate-bucket-distribution [grid-state buckets n]
+  (let [sticky-columns-count (count (get-sticky-columns grid-state))]
+    (js/console.log sticky-columns-count)
+    (loop [buckets-left (vec (drop sticky-columns-count buckets))
+           n n
+           acc-buckets (vec (take sticky-columns-count buckets))]
+      (if (seq buckets-left)
+        (if (<= (first buckets-left) n)
+          (recur (rest buckets-left) (- n (first buckets-left)) (conj acc-buckets 0))
+          (recur (rest buckets-left) (first buckets-left) (conj acc-buckets (first buckets-left))))
+        acc-buckets))))
+
+(calculate-bucket-distribution (atom {:sticky-columns [:a]}) [100 100 150] 120)
 (defn calculate-width-distribution [grid-state n]
   (calculate-bucket-distribution
     grid-state
     (map #(get-column-width % grid-state)
          (map first (:columns-config @grid-state)))
     n))
+
+(defn- calc [n s k]
+  (apply conj (repeat (- n s) (- k)) (repeat s 0)))
+
+(defn calculate-left-margins [grid-state scroll-left]
+  (let [k (calc (count (remove (partial sticky-column? grid-state)
+                (get-visible-columns grid-state)))
+        (count (get-sticky-columns grid-state))
+        scroll-left)]
+    (js/console.log (pr-str k))
+    k))
+
+(defn update-left-margins [grid-state scroll-left]
+  (swap! grid-state assoc :columns-config
+         (vec
+           (map (fn [[column-kw column-config :as column] left-margin]
+                  (assoc-in column [1 :left-margin] left-margin))
+                (:columns-config @grid-state)
+                (calculate-left-margins grid-state scroll-left)))))
+
+(calc 3 0 100)
 
 (defn update-column-width-distribution [grid-state n]
   (swap! grid-state assoc :columns-config
@@ -239,14 +244,26 @@
    to prevent non-sticky column headers from showing through them"
   [grid-state]
   [:div {:style {:position         :fixed
-                 :z-index          800
+                 :top              0
+                 :left             left-corner-block-width
                  :background-color "#fff"
-                 :width            (get-total-columns-width
-                                     grid-state
-                                     (filter (partial sticky-column? grid-state)
-                                             (map first (:columns-config @grid-state))))
-                 :height           400}}])
+                 :width            (+ (get-total-columns-width
+                                       grid-state
+                                       (filter (partial sticky-column? grid-state)
+                                               (map first (get-visible-columns grid-state)))))
+                 :height           40}}])
 
+(defn- number-buttons-foundation
+  "Creates a div that will be placed underneath sticky column headers
+   to prevent non-sticky column headers from showing through them"
+  [grid-state]
+  [:div {:style {:position         :fixed
+                 :top              0
+                 :left             0
+                 :z-index          7000
+                 :background-color "#fff"
+                 :width            left-corner-block-width
+                 :height           "100%"}}])
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
                :let [[column-kw config] column-config]
@@ -314,6 +331,8 @@
                                  :width     left-corner-block-width
                                  :min-width left-corner-block-width
                                  :max-width left-corner-block-width
+                                 :position :relative
+                                 :z-index   9999
                                  :padding   0}
         left-corner-block       (or (:left-corner-block @grid-state)
                                     (fn [grid-state style]
@@ -425,15 +444,17 @@
                      :reagent-render (fn [i grid-state]
                                        [:div {:id i
                                               :draggable       true
-                                              :class           "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
+                                              :class "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
+
                                               :style           (merge
                                                                  {:display   :table-cell
                                                                   :width     left-corner-block-width
                                                                   :min-width left-corner-block-width
                                                                   :max-width left-corner-block-width
-                                                                  :z-index   9999
+                                                                  :z-index   999999
+                                                                  :position :relative
                                                                   :padding   0}
-                                                                 ;; why is it necessary?
+                                                                 ; why is it necessary?
                                                                  (when hoverable?
                                                                    hover-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
@@ -482,7 +503,8 @@
 
                                                                    (. evt preventDefault)))}
                                         (when hoverable?
-                                          [:div
+                                          [:div {:background-color "#fff"}
+                                           
                                            (inc i)
                                            [hover-indicator]])])})))
 
@@ -500,8 +522,8 @@
                                           :let [render-column-fn (:render-column-fn config)
                                                 k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
                                    (if render-column-fn
-                                     ^{:key k} [render-column-fn column-kw row grid-state (tuple-style grid-state column-kw)]
-                                     ^{:key k} [default-column-render column-kw row grid-state (tuple-style grid-state column-kw)]))))
+                                     ^{:key k} [render-column-fn column-kw row grid-state (merge (tuple-style grid-state column-kw config) {})]
+                                     ^{:key k} [default-column-render column-kw row grid-state (merge (tuple-style grid-state column-kw config) {})]))))
         row-div         (fn [i row]
                           (let [style {:display :table-row}
                                 style (if (tily/is-contained? i :in @selected-rows)
@@ -547,7 +569,7 @@
                      :border           "1px solid grey"
                      :padding          5
                      :position         :absolute
-                     :z-index          1000
+                     :z-index          10000
                      :left             (first coordinate)
                      :top              (second coordinate)}}
        content])))
@@ -570,7 +592,7 @@
               :on-click #(swap! setting-visible? (fn [old-val] (not old-val)))} "settings"]
          (when @setting-visible?
            [:div {:style {:position :absolute
-                          :z-index 10
+                          :z-index 11000
                           :top drop-down-top
                           :right 0
                           :padding 0
@@ -603,21 +625,19 @@
   (r/create-class {:component-will-mount (fn [this-component]
                                            (.addEventListener js/window "scroll"
                                             (fn [_]
-                                              (when (seq (get-sticky-columns grid-state))
-                                                (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
-                                                (update-column-width-distribution grid-state js/document.body.scrollLeft))))
+                                              (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
+                                              (update-left-margins grid-state js/document.body.scrollLeft)))
                                            (tily/set-atom! grid-state [:selected-rows] #{})
                                            (tily/set-atom! grid-state [:expanded-rows] #{})
                                            (tily/set-atom! grid-state [:sticky-columns] #{})
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render       (fn [grid-state]
-                                           (when-not @initial-width-set?
-                                              (set-initial-column-widths grid-state)
-                                              (vswap! initial-width-set? not))
                                            [:div {:style {:width 2000}}
                                             [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)}
                                                                   :on-click #(when (-> @grid-state :context-menu :content)
                                                                                (tily/set-atom! grid-state [:context-menu :content] nil))}
+                                             [sticky-column-headers-foundation grid-state]
                                              [context-menu grid-state]
                                              [column-headers grid-state]
+                                             [number-buttons-foundation grid-state]
                                              [rows grid-state]]])}))
