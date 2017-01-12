@@ -166,8 +166,8 @@
         select-row      #(swap! selected-rows conj i)
         unselect-row    (fn [] (swap! selected-rows (fn [selected-rows]
                                                       (set (filter #(not= i %) selected-rows)))))
-        expand-row      (fn [] (swap! expanded-rows conj i))
-        collapse-row    (fn [] (swap! expanded-rows disj i))
+        expand-row      #(swap! expanded-rows conj i)
+        collapse-row    #(swap! expanded-rows disj i)
         hoverable?      (some? i)
         hover-style     (when (= i @hovered-nb-row)
                           {:background-color "#d9d9d9"})
@@ -183,9 +183,9 @@
                                                (expand-row))
                                              (.. evt stopPropagation)
                                              (.. evt -nativeEvent stopImmediatePropagation))}
-                              (if (tily/is-contained? i :in @expanded-rows)
-                                "arrow_drop_up"
-                                "arrow_drop_down")]))]
+                             (if (tily/is-contained? i :in @expanded-rows)
+                               "arrow_drop_up"
+                               "arrow_drop_down")]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
@@ -226,14 +226,14 @@
                                               :draggable       true
                                               :class           "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                                               :style           (merge
-                                                                 {:display   :table-cell
-                                                                  :width     left-corner-block-width
-                                                                  :min-width left-corner-block-width
-                                                                  :max-width left-corner-block-width
-                                                                  :padding   0}
-                                                                 ;; why is it necessary?
-                                                                 (when hoverable?
-                                                                   hover-style))
+                                                                {:display   :table-cell
+                                                                 :width     left-corner-block-width
+                                                                 :min-width left-corner-block-width
+                                                                 :max-width left-corner-block-width
+                                                                 :padding   0}
+                                                                ;; why is it necessary?
+                                                                (when hoverable?
+                                                                  hover-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
