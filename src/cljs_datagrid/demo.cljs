@@ -49,10 +49,8 @@
                                                                                                   :render-header-fn (constantly "First Name")})]
                                                         [:person/last-name  (merge common-config {:render-header-fn (constantly "Last Name")})]
                                                         [:person/email      (merge common-config {:render-header-fn (constantly "Email")})]
-                                                        [:person/telephone  (merge common-config {:extra? false
-                                                                                                  :render-header-fn (constantly "Telephone")})]
-                                                        [:person/gender     (merge common-config {:extra? false
-                                                                                                  :render-header-fn (constantly "Gender")})]]})]
+                                                        [:person/telephone  (merge common-config {:render-header-fn (constantly "Telephone")})]
+                                                        [:person/gender     (merge common-config {:render-header-fn (constantly "Gender")})]]})]
     app-state))
 
 (defonce grid-state (init-db))
