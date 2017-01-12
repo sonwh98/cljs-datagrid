@@ -67,7 +67,6 @@
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
                :let [[column-kw config] column-config]
-               :when (not (:extra? config))
                :let [column-width   (get-column-width column-kw grid-state)
                      header-txt     (-> config :render-header-fn (apply nil))
                      sort-indicator (let [sort-column (-> @grid-state :sort-column)
@@ -295,7 +294,6 @@
         row-data        (fn [row]
                           (doall (for [[column-kw config] columns-config
                                        :when (:visible? config)
-                                       :when (not (:extra? config))
                                        :let [render-column-fn (:render-column-fn config)
                                              k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
                                    (if render-column-fn
@@ -309,20 +307,19 @@
                             [:div {:style style}
                              [number-button i grid-state]
                              (row-data row)]))
-        extra-row-data  (fn [row]
-                          (doall (for [[column-kw config] columns-config
-                                       :when (:visible? config)
-                                       :when (:extra? config)
-                                       :let [render-column-fn (:render-column-fn config)
-                                             k                (tily/format "grid-%s-%s-%s-extra" id (:system/id @row) column-kw)]]
-                                  (if render-column-fn
-                                     ^{:key k} [render-column-fn column-kw row grid-state]
-                                     ^{:key k} [default-column-render column-kw row grid-state]))))
         extra-row-div   (fn [i row]
                           [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
                                           {:display :none})}
-                           [number-button nil grid-state]
-                           (extra-row-data row)])]
+                           ;; [number-button nil grid-state]
+                           ;; (extra-row-data row)
+                           [:div
+                            [:select
+                             [:option {:value 1} 1]
+                             [:option {:value 2} 2]
+                             [:option {:value 3} 3]]
+                            [:img {:src "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSvkX2GAcg7E-ssPgcBStSck01nL0PvfDGEmbzRdl5t7ieZYK26"}]
+                            ]
+                           ])]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
            :style {:display    :block
