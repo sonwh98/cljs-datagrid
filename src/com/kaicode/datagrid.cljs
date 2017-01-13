@@ -66,8 +66,8 @@
 
 (defn- data-column-headers [grid-state]
   (doall (for [column-config (-> @grid-state :columns-config)
-               :let [[column-kw config] column-config]
-               :let [column-width   (get-column-width column-kw grid-state)
+               :let [[column-kw config] column-config
+                     column-width   (get-column-width column-kw grid-state)
                      header-txt     (-> config :render-header-fn (apply nil))
                      sort-indicator (let [sort-column (-> @grid-state :sort-column)
                                           column      (-> sort-column keys first)
