@@ -4,7 +4,7 @@
             [reagent.core :as r]
             [cljsjs.hammer]))
 
-(defonce left-corner-block-width 40)
+(defonce left-corner-block-width 60)
 (defonce common-column-style {:display :table-cell
                               :padding 0
                               :border  "1px solid #d9d9d9"})
@@ -24,11 +24,11 @@
 
 (defn get-invisible-columns [grid-state]
   (->> @grid-state :columns-config
-       (filter #(false? (-> % second :visible)))))
+       (filter #(false? (-> % second :visible?)))))
 
 (defn get-visible-columns [grid-state]
   (->> @grid-state :columns-config
-       (filter #(true? (-> % second :visible)))))
+       (filter #(true? (-> % second :visible?)))))
 
 (defn get-content-width [grid-state]
   (-> grid-state get-window-dimension :width))
@@ -56,10 +56,10 @@
 
 (defn get-default-column-style [column-kw spreadsheet-state]
   (let [column-width (get-column-width column-kw spreadsheet-state)
-        style (merge {:width         column-width
-                      :min-width     column-width
-                      :max-width     column-width
-                      :text-align :center
+        style (merge {:width          column-width
+                      :min-width      column-width
+                      :max-width      column-width
+                      :text-align     :center
                       :vertical-align :middle}
                      common-column-style)]
     style))
@@ -86,19 +86,18 @@
                                                                                        >
                                                                                        <))]
                                                               (-> grid-state
-                                                                  (update-in [:selected-rows] (constantly #{}))
+                                                                  (assoc :selected-rows #{})
                                                                   (update-in [:sort-column] (fn [sc]
                                                                                               (let [val (column-kw sc)]
                                                                                                 {column-kw (not val)})))
-                                                                  (update-in [:rows] (constantly
-                                                                                      (vec (sort-by
-                                                                                            #(-> % column-kw
-                                                                                                 (or "") str
-                                                                                                 clojure.string/lower-case)
-                                                                                            comparator
-                                                                                            rows))))))))))]
-               :when (:visible config)]
-           [:div {:key      (tily/format "grid-%s-%s" (:id @grid-state) column-kw)
+                                                                  (assoc :rows (vec (sort-by
+                                                                                     #(-> % column-kw
+                                                                                          (or "") str
+                                                                                          clojure.string/lower-case)
+                                                                                     comparator
+                                                                                     rows)))))))))]
+               :when (:visible? config)]
+           [:div {:key      (tily/format "grid-%s-%s-header" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                   :style    (merge {:display   :table-cell
                                     :width     column-width
@@ -110,16 +109,17 @@
             sort-indicator])))
 
 (defn- column-headers [grid-state]
-  (let [left-corner-block (or (:left-corner-block @grid-state)
-                              (fn [grid-state]
-                                [:div {:class "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
-                                       :style {:display   :table-cell
-                                               :width     left-corner-block-width
-                                               :min-width left-corner-block-width
-                                               :max-width left-corner-block-width
-                                               :padding   0}}]))]
+  (let [left-corner-block-style {:display   :table-cell
+                                 :width     left-corner-block-width
+                                 :min-width left-corner-block-width
+                                 :max-width left-corner-block-width
+                                 :padding   0}
+        left-corner-block       (or (:left-corner-block @grid-state)
+                                    (fn [grid-state style]
+                                      [:div {:class "mdl-button mdl-js-button mdl-button--raised"
+                                             :style style}]))]
     [:div {:style {:display :table-row}}
-     (left-corner-block grid-state)
+     (left-corner-block grid-state left-corner-block-style)
      (data-column-headers grid-state)]))
 
 (defn- default-column-render [column-kw row grid-state]
@@ -131,17 +131,18 @@
                             common-column-style)
         value        (str (column-kw @row))
         unique       (-> (get-column-config grid-state column-kw) :unique)
-        
         local-save (fn [evt]
                      (let [div     (. evt -target)
                            content (. div -textContent)
                            local-save-fn (:local-save-fn (get-column-config grid-state column-kw))]
-                       (local-save-fn content row column-kw)))
+                       (when-not (nil? local-save-fn)
+                         (local-save-fn content row column-kw))))
         remote-save (fn [evt]
                       (let [div     (. evt -target)
                             content (. div -textContent)
                             remote-save-fn (:remote-save-fn (get-column-config grid-state column-kw))]
-                        (remote-save-fn content row column-kw)))
+                        (when remote-save-fn
+                          (remote-save-fn content row column-kw))))
         property     {:key                               (tily/format "grid-%s-default-column-render-%s" id column-kw)
                       :content-editable                  (let [col-config (get-column-config grid-state column-kw)]
                                                            (if (contains? col-config :editable)
@@ -159,10 +160,33 @@
      value]))
 
 (defn- number-button [i grid-state]
-  (let [selected-rows (r/cursor grid-state [:selected-rows])
-        select-row    #(swap! selected-rows conj i)
-        unselect-row  (fn [] (swap! selected-rows (fn [selected-rows]
-                                                    (set (filter #(not= i %) selected-rows)))))]
+  (let [selected-rows   (r/cursor grid-state [:selected-rows])
+        expanded-rows   (r/cursor grid-state [:expanded-rows])
+        hovered-nb-row  (r/cursor grid-state [:hovered-number-button-row])
+        select-row      #(swap! selected-rows conj i)
+        unselect-row    (fn [] (swap! selected-rows (fn [selected-rows]
+                                                      (set (filter #(not= i %) selected-rows)))))
+        expand-row      #(swap! expanded-rows conj i)
+        collapse-row    #(swap! expanded-rows disj i)
+        row (get-in @grid-state [:rows i])
+        hoverable?      #(some? (:on-expand row))
+        hover-style     (when (= i @hovered-nb-row)
+                          {:background-color "#d9d9d9"})
+        hover-indicator (fn []
+                          (when (= i @hovered-nb-row)
+                            [:i {:class (str "number-button-indicator material-icons"
+                                             (when (hoverable?) " number-button-indicator-hoverable"))
+                                 :style {:margin-left    5
+                                         :margin-right -10}
+                                 :on-click (fn [evt]
+                                             (if (tily/is-contained? i :in @expanded-rows)
+                                               (collapse-row)
+                                               (expand-row))
+                                             (.. evt stopPropagation)
+                                             (.. evt -nativeEvent stopImmediatePropagation))}
+                             (if (tily/is-contained? i :in @expanded-rows)
+                               "arrow_drop_up"
+                               "arrow_drop_down")]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
@@ -191,24 +215,31 @@
                                                                                                                               constantly)]
                                                                                                        (on-delete-rows rows-to-delete)
 
+                                                                                                       (swap! expanded-rows clojure.set/difference @selected-rows)
                                                                                                        (reset! selected-rows #{})
                                                                                                        (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
                                                                          (swap! grid-state  (fn [grid-state]
                                                                                               (-> grid-state
-                                                                                                  (update-in [:context-menu :content] (constantly delete))
-                                                                                                  (update-in [:context-menu :coordinate] (constantly [x y])))))))))))))
+                                                                                                  (assoc-in [:context-menu :content] delete)
+                                                                                                  (assoc-in [:context-menu :coordinate] [x y]))))))))))))
                      :reagent-render (fn [i grid-state]
                                        [:div {:id i
                                               :draggable       true
                                               :class           "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
-                                              :style           {:display   :table-cell
-                                                                :width     left-corner-block-width
-                                                                :min-width left-corner-block-width
-                                                                :max-width left-corner-block-width
-                                                                :padding   0}
+                                              :style           (merge
+                                                                {:display   :table-cell
+                                                                 :width     left-corner-block-width
+                                                                 :min-width left-corner-block-width
+                                                                 :max-width left-corner-block-width
+                                                                 :padding   0}
+                                                                ;; why is it necessary?
+                                                                (when (hoverable?)
+                                                                  hover-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
+                                              :on-mouse-enter  (fn [_] (when (hoverable?) (reset! hovered-nb-row i)))
+                                              :on-mouse-leave  (fn [_] (when (hoverable?) (reset! hovered-nb-row nil)))
                                               :on-drag-start   (fn [evt]
                                                                  (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                                                        selected-entities     (-> @grid-state :rows
@@ -242,37 +273,41 @@
                                                                                                                             constantly)]
                                                                                                      (on-delete-rows rows-to-delete)
 
+                                                                                                     (swap! expanded-rows clojure.set/difference @selected-rows)
                                                                                                      (reset! selected-rows #{})
                                                                                                      (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
                                                                        (tily/set-atom! grid-state [:context-menu :content] delete)
                                                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y])))
 
                                                                    (. evt preventDefault)))}
-                                        (inc i)])})))
+                                        [:div
+                                         (inc i)
+                                         (when (hoverable?)
+                                           [hover-indicator])]])})))
 
 (defn- rows [grid-state]
-  (let [id             (-> @grid-state :id)
-        total-width    (get-content-width grid-state)
-        total-height   (get-content-height grid-state)
-        columns-config (-> @grid-state :columns-config)
-        selected-rows  (r/cursor grid-state [:selected-rows])
-        row-data       (fn [row]
-                         (doall (for [[column-kw config] columns-config
-                                      :let [render-column-fn (:render-column-fn config)
-                                            k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]
-                                      :when (:visible config)]
-                                  (if render-column-fn
-                                    ^{:key k} [render-column-fn column-kw row grid-state]
-                                    ^{:key k} [default-column-render column-kw row grid-state]))))
-        row-div        (fn [i row]
-                         (let [style {:display :table-row}
-                               style (if (tily/is-contained? i :in @selected-rows)
-                                       (assoc style :background-color "#e6faff")
-                                       style)]
-                           [:div {:key   (tily/format "grid-%s-%s" id i)
-                                  :style style}
-                            [number-button i grid-state]
-                            (row-data row)]))]
+  (let [id              (-> @grid-state :id)
+        total-width     (get-content-width grid-state)
+        total-height    (get-content-height grid-state)
+        columns-config  (-> @grid-state :columns-config)
+        selected-rows   (r/cursor grid-state [:selected-rows])
+        expanded-rows   (r/cursor grid-state [:expanded-rows])
+        row-data        (fn [row]
+                          (doall (for [[column-kw config] columns-config
+                                       :when (:visible? config)
+                                       :let [render-column-fn (:render-column-fn config)
+                                             k                (tily/format "grid-%s-%s-%s" id (:system/id @row) column-kw)]]
+                                   (if render-column-fn
+                                     ^{:key k} [render-column-fn column-kw row grid-state]
+                                     ^{:key k} [default-column-render column-kw row grid-state]))))
+        row-div         (fn [i row]
+                          (let [style {:display :table-row}
+                                style (if (tily/is-contained? i :in @selected-rows)
+                                        (assoc style :background-color "#e6faff")
+                                        style)]
+                            [:div {:style style}
+                             [number-button i grid-state]
+                             (row-data row)]))]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
            :style {:display    :block
@@ -281,8 +316,16 @@
                    :overflow-y :auto
                    :overflow-x :hidden}}
      (doall (for [i (range (-> @grid-state :rows count))
-                  :let [row (r/cursor grid-state [:rows i])]]
-              (row-div i row)))]))
+                  :let [row (r/cursor grid-state [:rows i])
+                        on-expand (:on-expand @row)
+                        k   (tily/format "grid-%s-%s-extra" id i)]]
+              ^{:key k} [:div
+                         [row-div i row]
+                         (when on-expand 
+                           [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
+                                           {:display :none})} 
+                            (on-expand row)])
+                         ]))]))
 
 (defn- context-menu [grid-state]
   (let [content    (-> @grid-state :context-menu :content)
@@ -333,16 +376,18 @@
                           :list-style-type :none}}
              (for [[i [column-kw config]] (tily/with-index columns-config)
                    :let [k (tily/format "spreadsheet-%s-cog-%s" id column-kw)
-                         visible? (:visible config)
+                         visible? (:visible? config)
                          ch (-> config :render-header-fn (apply nil))]]
                [:li {:key k}
                 [:label {:class "mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" :for k}
                  [:input {:type "checkbox" :id k :class "mdl-checkbox__input" :defaultChecked visible?
-                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible] not)}]
+                          :on-change #(swap! grid-state update-in [:columns-config i 1 :visible?] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
 (defn render [grid-state]
   (r/create-class {:component-will-mount (fn [this-component]
+                                           (tily/set-atom! grid-state [:selected-rows] #{})
+                                           (tily/set-atom! grid-state [:expanded-rows] #{})
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
