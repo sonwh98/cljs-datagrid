@@ -12,7 +12,14 @@
                         :person/last-name  "Su"
                         :person/email      "sonny.su@foobar.com"
                         :person/telephone  "123"
-                        :person/gender     "M"}
+                        :person/gender     "M"
+                        :on-expand (fn [this-row]
+                                     [:div
+                                      [:select
+                                       [:option {:value 1} 1]
+                                       [:option {:value 2} 2]
+                                       [:option {:value 3} 3]]
+                                      [:img {:src "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSvkX2GAcg7E-ssPgcBStSck01nL0PvfDGEmbzRdl5t7ieZYK26"}]])}
                        {:person/first-name "John"
                         :person/last-name  "Smith"
                         :person/email      "john.smith@foobar.com"

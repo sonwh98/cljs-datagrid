@@ -132,17 +132,18 @@
                             common-column-style)
         value        (str (column-kw @row))
         unique       (-> (get-column-config grid-state column-kw) :unique)
-        
         local-save (fn [evt]
                      (let [div     (. evt -target)
                            content (. div -textContent)
                            local-save-fn (:local-save-fn (get-column-config grid-state column-kw))]
-                       (local-save-fn content row column-kw)))
+                       (when-not (nil? local-save-fn)
+                         (local-save-fn content row column-kw))))
         remote-save (fn [evt]
                       (let [div     (. evt -target)
                             content (. div -textContent)
                             remote-save-fn (:remote-save-fn (get-column-config grid-state column-kw))]
-                        (remote-save-fn content row column-kw)))
+                        (when remote-save-fn
+                          (remote-save-fn content row column-kw))))
         property     {:key                               (tily/format "grid-%s-default-column-render-%s" id column-kw)
                       :content-editable                  (let [col-config (get-column-config grid-state column-kw)]
                                                            (if (contains? col-config :editable)
@@ -168,13 +169,14 @@
                                                       (set (filter #(not= i %) selected-rows)))))
         expand-row      #(swap! expanded-rows conj i)
         collapse-row    #(swap! expanded-rows disj i)
-        hoverable?      (some? i)
+        row (get-in @grid-state [:rows i])
+        hoverable?      #(some? (:on-expand row))
         hover-style     (when (= i @hovered-nb-row)
                           {:background-color "#d9d9d9"})
         hover-indicator (fn []
                           (when (= i @hovered-nb-row)
                             [:i {:class (str "number-button-indicator material-icons"
-                                             (when hoverable? " number-button-indicator-hoverable"))
+                                             (when (hoverable?) " number-button-indicator-hoverable"))
                                  :style {:margin-left    5
                                          :margin-right -10}
                                  :on-click (fn [evt]
@@ -232,13 +234,13 @@
                                                                  :max-width left-corner-block-width
                                                                  :padding   0}
                                                                 ;; why is it necessary?
-                                                                (when hoverable?
+                                                                (when (hoverable?)
                                                                   hover-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
-                                              :on-mouse-enter  (fn [_] (when hoverable? (reset! hovered-nb-row i)))
-                                              :on-mouse-leave  (fn [_] (when hoverable? (reset! hovered-nb-row nil)))
+                                              :on-mouse-enter  (fn [_] (when (hoverable?) (reset! hovered-nb-row i)))
+                                              :on-mouse-leave  (fn [_] (when (hoverable?) (reset! hovered-nb-row nil)))
                                               :on-drag-start   (fn [evt]
                                                                  (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                                                        selected-entities     (-> @grid-state :rows
@@ -279,10 +281,10 @@
                                                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y])))
 
                                                                    (. evt preventDefault)))}
-                                        (when hoverable?
-                                          [:div
-                                           (inc i)
-                                           [hover-indicator]])])})))
+                                        [:div
+                                         (inc i)
+                                         (when (hoverable?)
+                                           [hover-indicator])]])})))
 
 (defn- rows [grid-state]
   (let [id              (-> @grid-state :id)
@@ -306,20 +308,7 @@
                                         style)]
                             [:div {:style style}
                              [number-button i grid-state]
-                             (row-data row)]))
-        extra-row-div   (fn [i row]
-                          [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
-                                          {:display :none})}
-                           ;; [number-button nil grid-state]
-                           ;; (extra-row-data row)
-                           [:div
-                            [:select
-                             [:option {:value 1} 1]
-                             [:option {:value 2} 2]
-                             [:option {:value 3} 3]]
-                            [:img {:src "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSvkX2GAcg7E-ssPgcBStSck01nL0PvfDGEmbzRdl5t7ieZYK26"}]
-                            ]
-                           ])]
+                             (row-data row)]))]
     [:div {:id    (tily/format "grid-%s-rows" id)
            :class "grid-rows"
            :style {:display    :block
@@ -329,10 +318,15 @@
                    :overflow-x :hidden}}
      (doall (for [i (range (-> @grid-state :rows count))
                   :let [row (r/cursor grid-state [:rows i])
+                        on-expand (:on-expand @row)
                         k   (tily/format "grid-%s-%s-extra" id i)]]
               ^{:key k} [:div
                          [row-div i row]
-                         [extra-row-div i row]]))]))
+                         (when on-expand 
+                           [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
+                                           {:display :none})} 
+                            (on-expand row)])
+                         ]))]))
 
 (defn- context-menu [grid-state]
   (let [content    (-> @grid-state :context-menu :content)
