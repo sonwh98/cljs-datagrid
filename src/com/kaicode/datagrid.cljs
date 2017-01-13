@@ -86,17 +86,16 @@
                                                                                        >
                                                                                        <))]
                                                               (-> grid-state
-                                                                  (update-in [:selected-rows] (constantly #{}))
+                                                                  (assoc :selected-rows #{})
                                                                   (update-in [:sort-column] (fn [sc]
                                                                                               (let [val (column-kw sc)]
                                                                                                 {column-kw (not val)})))
-                                                                  (update-in [:rows] (constantly
-                                                                                      (vec (sort-by
-                                                                                            #(-> % column-kw
-                                                                                                 (or "") str
-                                                                                                 clojure.string/lower-case)
-                                                                                            comparator
-                                                                                            rows))))))))))]
+                                                                  (assoc :rows (vec (sort-by
+                                                                                     #(-> % column-kw
+                                                                                          (or "") str
+                                                                                          clojure.string/lower-case)
+                                                                                     comparator
+                                                                                     rows)))))))))]
                :when (:visible? config)]
            [:div {:key      (tily/format "grid-%s-%s-header" (:id @grid-state) column-kw)
                   :class    "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
@@ -221,8 +220,8 @@
                                                                                                        (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
                                                                          (swap! grid-state  (fn [grid-state]
                                                                                               (-> grid-state
-                                                                                                  (update-in [:context-menu :content] (constantly delete))
-                                                                                                  (update-in [:context-menu :coordinate] (constantly [x y])))))))))))))
+                                                                                                  (assoc-in [:context-menu :content] delete)
+                                                                                                  (assoc-in [:context-menu :coordinate] [x y]))))))))))))
                      :reagent-render (fn [i grid-state]
                                        [:div {:id i
                                               :draggable       true
