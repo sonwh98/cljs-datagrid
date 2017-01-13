@@ -37,7 +37,8 @@
                         :person/gender     "F"}]
         app-state     (reagent/atom {:window-dimension {:width  (. js/window -innerWidth)
                                                         :height (. js/window -innerHeight)}
-                                     :left-corner-block (fn [grid-state style] ;; This fn should be able to merge provided
+                                     :left-corner-block (fn [grid-state style]
+                                                          ;; This fn should be able to merge provided
                                                           ;; styles with it's top-level node, so we
                                                           ;; are able to set it's width for example.
                                                           [:div {:style (merge {:display :table-cell
