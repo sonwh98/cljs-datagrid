@@ -169,13 +169,13 @@
         expand-row      #(swap! expanded-rows conj i)
         collapse-row    #(swap! expanded-rows disj i)
         row (get-in @grid-state [:rows i])
-        hoverable?      #(some? (:on-expand row))
+        hoverable?      (some? (:on-expand row))
         hover-style     (when (= i @hovered-nb-row)
                           {:background-color "#d9d9d9"})
         hover-indicator (fn []
                           (when (= i @hovered-nb-row)
                             [:i {:class (str "number-button-indicator material-icons"
-                                             (when (hoverable?) " number-button-indicator-hoverable"))
+                                             (when hoverable? " number-button-indicator-hoverable"))
                                  :style {:margin-left    5
                                          :margin-right -10}
                                  :on-click (fn [evt]
@@ -233,13 +233,13 @@
                                                                  :max-width left-corner-block-width
                                                                  :padding   0}
                                                                 ;; why is it necessary?
-                                                                (when (hoverable?)
+                                                                (when hoverable?
                                                                   hover-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
-                                              :on-mouse-enter  (fn [_] (when (hoverable?) (reset! hovered-nb-row i)))
-                                              :on-mouse-leave  (fn [_] (when (hoverable?) (reset! hovered-nb-row nil)))
+                                              :on-mouse-enter  (fn [_] (when hoverable? (reset! hovered-nb-row i)))
+                                              :on-mouse-leave  (fn [_] (when hoverable? (reset! hovered-nb-row nil)))
                                               :on-drag-start   (fn [evt]
                                                                  (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
                                                                        selected-entities     (-> @grid-state :rows
@@ -282,7 +282,7 @@
                                                                    (. evt preventDefault)))}
                                         [:div
                                          (inc i)
-                                         (when (hoverable?)
+                                         (when hoverable?
                                            [hover-indicator])]])})))
 
 (defn- rows [grid-state]
