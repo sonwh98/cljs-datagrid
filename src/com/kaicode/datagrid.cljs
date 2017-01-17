@@ -320,7 +320,7 @@
                         on-expand (:on-expand @row)
                         k   (tily/format "grid-%s-%s-extra" id i)]]
               ^{:key k} [:div
-                         [row-div i row]
+                         (row-div i row) ;;NOTE: this must be a function call and not a reagent component otherwise it would reactive which causes UI quirks
                          (when on-expand 
                            [:div {:style (when-not (tily/is-contained? i :in @expanded-rows)
                                            {:display :none})} 
