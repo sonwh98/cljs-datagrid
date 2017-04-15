@@ -231,7 +231,8 @@
                                                                  :width     left-corner-block-width
                                                                  :min-width left-corner-block-width
                                                                  :max-width left-corner-block-width
-                                                                 :padding   0}
+                                                                 :padding   0
+                                                                 :user-drag :element}
                                                                 ;; why is it necessary?
                                                                 (when hoverable?
                                                                   hover-style))
