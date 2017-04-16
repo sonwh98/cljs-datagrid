@@ -241,9 +241,12 @@
                                                                   (select-row))
                                               :on-mouse-enter  (fn [_] (when hoverable? (reset! hovered-nb-row i)))
                                               :on-mouse-leave  (fn [_] (when hoverable? (reset! hovered-nb-row nil)))
-                                              :on-drag-start   (let [on-row-drag (:on-row-drag @grid-state)]
-                                                                 (when on-row-drag
-                                                                   #(on-row-drag i grid-state)))
+                                              :on-drag-start   (let [on-row-drag-start (:on-row-drag-start @grid-state)]
+                                                                 (when on-row-drag-start
+                                                                   #(on-row-drag-start i grid-state)))
+                                              :on-drag-end (let [on-row-drag-end (:on-row-drag-end @grid-state)]
+                                                             (when on-row-drag-end
+                                                               #(on-row-drag-end i grid-state)))
                                               :on-context-menu (fn [evt]
                                                                  (let [rect   (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
                                                                        x      (- (. evt -clientX) 10)
