@@ -241,14 +241,9 @@
                                                                   (select-row))
                                               :on-mouse-enter  (fn [_] (when hoverable? (reset! hovered-nb-row i)))
                                               :on-mouse-leave  (fn [_] (when hoverable? (reset! hovered-nb-row nil)))
-                                              :on-drag-start   (fn [evt]
-                                                                 (let [selected-row-indexes  (-> @grid-state (get-in [:selected-rows]))
-                                                                       selected-entities     (-> @grid-state :rows
-                                                                                                 (select-keys selected-row-indexes)
-                                                                                                 vals)
-                                                                       entity-ids            (map #(:system/id %) selected-entities)
-                                                                       serialized-entity-ids (t/serialize entity-ids)]
-                                                                   (.. evt -dataTransfer (setData "data/transit" serialized-entity-ids))))
+                                              :on-drag-start   (let [on-row-drag (:on-row-drag @grid-state)]
+                                                                 (when on-row-drag
+                                                                   #(on-row-drag i grid-state)))
                                               :on-context-menu (fn [evt]
                                                                  (let [rect   (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
                                                                        x      (- (. evt -clientX) 10)
