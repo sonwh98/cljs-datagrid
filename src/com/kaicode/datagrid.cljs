@@ -574,9 +574,7 @@
                                              (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render         (fn [grid-state]
                                              [:div {:style {:width (get-content-width grid-state)}}
-                                              [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)
-                                                                               :max-width "100%"
-                                                                               :overflow-x :hidden}
+                                              [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)}
                                                                     :on-click #(when (-> @grid-state :context-menu :content)
                                                                                  (tily/set-atom! grid-state [:context-menu :content] nil))}
                                                ;[sticky-column-headers-foundation grid-state]
