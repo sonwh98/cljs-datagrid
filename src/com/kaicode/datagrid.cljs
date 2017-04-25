@@ -394,10 +394,9 @@
                                                                                                   (assoc-in [:context-menu :content] delete)
                                                                                                   (assoc-in [:context-menu :coordinate] [x y]))))))))))))
                      :reagent-render (fn [i grid-state]
-                                       [:div {:id i
+                                       [:div {:id              i
                                               :draggable       true
-                                              :class "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
-
+                                              :class           "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                                               :style           (merge
                                                                  {:display   :table-cell
                                                                   :width     left-corner-block-width
