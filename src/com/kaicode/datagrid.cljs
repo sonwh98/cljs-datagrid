@@ -65,10 +65,12 @@
     style))
 
 (defn- mark-column-as-sticky [grid-state column-kw]
-  (swap! grid-state update :sticky-columns conj column-kw))
+  (swap! grid-state update :sticky-columns conj column-kw)
+  (sticky-columns-refresh grid-state this-component))
 
 (defn- mark-column-as-non-sticky [grid-state column-kw]
-  (swap! grid-state update :sticky-columns disj column-kw))
+  (swap! grid-state update :sticky-columns disj column-kw)
+  (sticky-columns-refresh grid-state this-component) )
 
 (defn- get-sticky-columns [grid-state]
   (:sticky-columns @grid-state))
@@ -570,13 +572,6 @@
                                              (tily/set-atom! grid-state [:expanded-rows] #{})
                                              (tily/set-atom! grid-state [:sticky-columns] #{})
                                              (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
-                   :component-did-mount    (fn [this-component]
-                                             (add-watch grid-state :sticky-columns-watcher
-                                               (fn [k _ old-state new-state]
-                                                 (when-not (= (:sticky-columns old-state) (:sticky-columns new-state))
-                                                   (sticky-columns-refresh grid-state this-component)))))
-                   :component-will-unmount (fn [_]
-                                             (remove-watch grid-state :sticky-columns-watcher))
                    :reagent-render         (fn [grid-state]
                                              [:div {:style {:width (get-content-width grid-state)}}
                                               [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)
