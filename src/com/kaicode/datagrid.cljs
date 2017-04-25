@@ -565,23 +565,33 @@
                           :on-change #(swap! grid-state update-in [:columns-config i 1 :visible?] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
+(defn sticky-columns-refresh [grid-state]
+  (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
+  (update-left-margins grid-state js/document.body.scrollLeft))
+
+
 (defn render [grid-state]
-  (r/create-class {:component-will-mount (fn [this-component]
-                                           (.addEventListener js/window "scroll"
-                                            (fn [_]
-                                              (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
-                                              (update-left-margins grid-state js/document.body.scrollLeft)))
-                                           (tily/set-atom! grid-state [:selected-rows] #{})
-                                           (tily/set-atom! grid-state [:expanded-rows] #{})
-                                           (tily/set-atom! grid-state [:sticky-columns] #{})
-                                           (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
-                   :reagent-render       (fn [grid-state]
-                                           [:div {:style {:width (get-content-width grid-state)}}
-                                           [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)}
-                                                                 :on-click #(when (-> @grid-state :context-menu :content)
-                                                                              (tily/set-atom! grid-state [:context-menu :content] nil))}
-                                            [sticky-column-headers-foundation grid-state]
-                                            [context-menu grid-state]
-                                            [column-headers grid-state]
-                                            [number-buttons-foundation grid-state]
-                                            [rows grid-state]]])}))
+  (r/create-class {:component-will-mount   (fn [this-component]
+                                             (.addEventListener js/window "scroll" (fn [_]
+                                                                                     (sticky-columns-refresh grid-state)))
+                                             (tily/set-atom! grid-state [:selected-rows] #{})
+                                             (tily/set-atom! grid-state [:expanded-rows] #{})
+                                             (tily/set-atom! grid-state [:sticky-columns] #{})
+                                             (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
+                   :component-did-mount    (fn [this-component]
+                                             (add-watch grid-state :sticky-columns-watcher
+                                               (fn [k _ old-state new-state]
+                                                 (when-not (= (:sticky-columns old-state) (:sticky-columns new-state))
+                                                   (sticky-columns-refresh grid-state)))))
+                   :component-will-unmount (fn [_]
+                                             (remove-watch grid-state :sticky-columns-watcher))
+                   :reagent-render         (fn [grid-state]
+                                             [:div {:style {:width (get-content-width grid-state)}}
+                                              [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)}
+                                                                    :on-click #(when (-> @grid-state :context-menu :content)
+                                                                                 (tily/set-atom! grid-state [:context-menu :content] nil))}
+                                               [sticky-column-headers-foundation grid-state]
+                                               [context-menu grid-state]
+                                               [column-headers grid-state]
+                                               [number-buttons-foundation grid-state]
+                                               [rows grid-state]]])}))
