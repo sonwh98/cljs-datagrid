@@ -1,6 +1,7 @@
 (ns com.kaicode.datagrid
   (:require [com.kaicode.tily :as tily]
             [com.kaicode.teleport :as t]
+            [goog.dom :as gdom]
             [reagent.core :as r]
             [cljsjs.hammer]))
 
@@ -341,6 +342,7 @@
                           {:background-color "#d9d9d9"})
         hover-indicator (fn []
                           (when (= i @hovered-nb-row)
+
                             [:i {:class (str "number-button-indicator material-icons"
                                              (when hoverable? " number-button-indicator-hoverable"))
                                  :style {:margin-left    5
@@ -553,15 +555,17 @@
                           :on-change #(swap! grid-state update-in [:columns-config i 1 :visible?] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
-(defn sticky-columns-refresh [grid-state]
-  (tily/set-atom! grid-state [:scroll-left] js/document.body.scrollLeft)
-  (update-left-margins grid-state js/document.body.scrollLeft))
+(defn sticky-columns-refresh [grid-state this-component]
+  (let [element (r/dom-node this-component)
+        scroll-left (.-x (gdom/getDocumentScroll))]
+    (tily/set-atom! grid-state [:scroll-left] scroll-left)
+    (update-left-margins grid-state scroll-left)))
 
 
 (defn render [grid-state]
   (r/create-class {:component-will-mount   (fn [this-component]
                                              (.addEventListener js/window "scroll" (fn [_]
-                                                                                     (sticky-columns-refresh grid-state)))
+                                                                                     (sticky-columns-refresh grid-state this-component)))
                                              (tily/set-atom! grid-state [:selected-rows] #{})
                                              (tily/set-atom! grid-state [:expanded-rows] #{})
                                              (tily/set-atom! grid-state [:sticky-columns] #{})
@@ -570,7 +574,7 @@
                                              (add-watch grid-state :sticky-columns-watcher
                                                (fn [k _ old-state new-state]
                                                  (when-not (= (:sticky-columns old-state) (:sticky-columns new-state))
-                                                   (sticky-columns-refresh grid-state)))))
+                                                   (sticky-columns-refresh grid-state this-component)))))
                    :component-will-unmount (fn [_]
                                              (remove-watch grid-state :sticky-columns-watcher))
                    :reagent-render         (fn [grid-state]
