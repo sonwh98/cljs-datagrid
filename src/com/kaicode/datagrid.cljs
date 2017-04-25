@@ -201,7 +201,7 @@
                  :height           40}}])
 
 (defn- number-buttons-foundation
-  "Creates a div that will be placed underneath number buttons"
+  "Creates a div that is placed underneath number buttons"
   [grid-state]
   [:div {:style {:position         :fixed
                  :top              0
@@ -481,7 +481,7 @@
            :class "grid-rows"
            :style {:display    :block
                    :height     total-height
-                   :width      total-width
+                   :width      (- total-width (:scroll-left @grid-state))
                    :overflow-y :auto
                    :overflow-x :hidden}}
      (doall (for [i (range (-> @grid-state :rows count))
@@ -575,10 +575,12 @@
                                              (remove-watch grid-state :sticky-columns-watcher))
                    :reagent-render         (fn [grid-state]
                                              [:div {:style {:width (get-content-width grid-state)}}
-                                              [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)}
+                                              [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)
+                                                                               :max-width "100%"
+                                                                               :overflow-x :hidden}
                                                                     :on-click #(when (-> @grid-state :context-menu :content)
                                                                                  (tily/set-atom! grid-state [:context-menu :content] nil))}
-                                               [sticky-column-headers-foundation grid-state]
+                                               ;[sticky-column-headers-foundation grid-state]
                                                [context-menu grid-state]
                                                [column-headers grid-state]
                                                [number-buttons-foundation grid-state]
