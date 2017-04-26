@@ -1,4 +1,8 @@
+#datagrid-table {
+  max-width: "100%";
+  overflow-x: hidden;
+}
+
 .number-button-indicator-hoverable:hover {
   border: 1px solid gray;
 }
-
