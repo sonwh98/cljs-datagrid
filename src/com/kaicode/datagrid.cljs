@@ -64,14 +64,6 @@
                      common-column-style)]
     style))
 
-(defn- mark-column-as-sticky [grid-state column-kw]
-  (swap! grid-state update :sticky-columns conj column-kw)
-  (sticky-columns-refresh grid-state this-component))
-
-(defn- mark-column-as-non-sticky [grid-state column-kw]
-  (swap! grid-state update :sticky-columns disj column-kw)
-  (sticky-columns-refresh grid-state this-component) )
-
 (defn- get-sticky-columns [grid-state]
   (:sticky-columns @grid-state))
 
@@ -101,6 +93,36 @@
 (defn- get-non-sticky-columns [grid-state]
   (drop-while (partial sticky-column? grid-state)
               (map first (:columns-config @grid-state))))
+
+(defn- calc [n s k]
+  (apply conj (repeat (- n s) (- k)) (repeat s 0)))
+
+(defn calculate-left-margins [grid-state scroll-left]
+  (calc (count (remove (partial sticky-column? grid-state)
+                (get-visible-columns grid-state)))
+         (count (get-sticky-columns grid-state))
+         scroll-left))
+
+(defn update-left-margins [grid-state scroll-left]
+  (swap! grid-state assoc :columns-config
+         (vec
+           (map (fn [[column-kw column-config :as column] left-margin]
+                  (assoc-in column [1 :left-margin] left-margin))
+                (:columns-config @grid-state)
+                (calculate-left-margins grid-state scroll-left)))))
+
+(defn sticky-columns-refresh [grid-state]
+  (let [scroll-left (.-x (gdom/getDocumentScroll))]
+    (tily/set-atom! grid-state [:scroll-left] scroll-left)
+    (update-left-margins grid-state scroll-left)))
+
+(defn- mark-column-as-sticky [grid-state column-kw]
+  (swap! grid-state update :sticky-columns conj column-kw)
+  (sticky-columns-refresh grid-state))
+
+(defn- mark-column-as-non-sticky [grid-state column-kw]
+  (swap! grid-state update :sticky-columns disj column-kw)
+  (sticky-columns-refresh grid-state))
 
 (defn assoc-in-columns-config [grid-state column-kw ks v]
   (swap! grid-state assoc :columns-config
@@ -172,23 +194,6 @@
         {:background-color "#f6f6f6"})
       (when (not= 0 (:left-margin column-config))
         {:left (:left-margin column-config)}))))
-
-(defn- calc [n s k]
-  (apply conj (repeat (- n s) (- k)) (repeat s 0)))
-
-(defn calculate-left-margins [grid-state scroll-left]
-  (calc (count (remove (partial sticky-column? grid-state)
-                (get-visible-columns grid-state)))
-         (count (get-sticky-columns grid-state))
-         scroll-left))
-
-(defn update-left-margins [grid-state scroll-left]
-  (swap! grid-state assoc :columns-config
-         (vec
-           (map (fn [[column-kw column-config :as column] left-margin]
-                  (assoc-in column [1 :left-margin] left-margin))
-                (:columns-config @grid-state)
-                (calculate-left-margins grid-state scroll-left)))))
 
 (defn- sticky-column-headers-foundation
   "Creates a div that is placed underneath sticky column headers"
@@ -450,7 +455,6 @@
                                                                                                      (tily/set-atom! grid-state [:rows] new-rows)))} "Delete"]]
                                                                        (tily/set-atom! grid-state [:context-menu :content] delete)
                                                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y])))
-
                                                                    (. evt preventDefault)))}
                                         [:div
                                          (inc i)
@@ -556,17 +560,13 @@
                           :on-change #(swap! grid-state update-in [:columns-config i 1 :visible?] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
-(defn sticky-columns-refresh [grid-state this-component]
-  (let [element (r/dom-node this-component)
-        scroll-left (.-x (gdom/getDocumentScroll))]
-    (tily/set-atom! grid-state [:scroll-left] scroll-left)
-    (update-left-margins grid-state scroll-left)))
+
 
 
 (defn render [grid-state]
-  (r/create-class {:component-will-mount   (fn [this-component]
+  (r/create-class {:component-will-mount   (fn [_]
                                              (.addEventListener js/window "scroll" (fn [_]
-                                                                                     (sticky-columns-refresh grid-state this-component)))
+                                                                                     (sticky-columns-refresh grid-state)))
                                              (tily/set-atom! grid-state [:selected-rows] #{})
                                              (tily/set-atom! grid-state [:expanded-rows] #{})
                                              (tily/set-atom! grid-state [:sticky-columns] #{})
