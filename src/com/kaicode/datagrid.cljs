@@ -564,22 +564,17 @@
 
 (def search-box (mdl/component (fn [grid-state]
                                  (let [id (str "search-box-" (:id @grid-state))
-                                       value (r/atom nil)
-                                       all-rows (:rows @grid-state)]
+                                       value (r/atom nil)]
                                    (fn [grid-state]
                                      [:div
                                       [:div {:class "mdl-textfield mdl-js-textfield mdl-textfield--floating-label"}
                                        [:input {:id id :class "mdl-textfield__input" :type "text" :value @value
                                                 :on-change (fn [evt]
-                                                             (let [v (.. evt -target -value)
+                                                             (let [txt (.. evt -target -value)
                                                                    search-fn (:search-fn @grid-state)
-                                                                   matching-rows (search-fn v all-rows)]
-                                                               (reset! value v)
-                                                               (if (empty? v)
-                                                                 (swap! grid-state assoc :rows all-rows)
-                                                                 (swap! grid-state assoc :rows matching-rows))
-                                                               )
-                                                             )}]
+                                                                   matching-rows (search-fn txt)]
+                                                               (reset! value txt)
+                                                               (swap! grid-state assoc :rows matching-rows)))}]
                                        [:label {:class "mdl-textfield__label", :for id} "Search..."]]
                                       [:i {:class "material-icons"
                                            :on-click #(reset! value nil)} "clear"]])))))
