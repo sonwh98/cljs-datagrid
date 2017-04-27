@@ -12,6 +12,7 @@
 
                  [com.kaicode/teleport "0.1.1-SNAPSHOT"]
                  [com.kaicode/tily "0.1.6-SNAPSHOT"]
+                 [com.kaicode/material-girl "0.1.0-SNAPSHOT"]
                  [cljsjs/hammer "2.0.4-5"]]
 
   :plugins [[lein-figwheel "0.5.4-7"]

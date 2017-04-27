@@ -37,6 +37,15 @@
                         :person/gender     "F"}]
         app-state     (reagent/atom {:window-dimension {:width  (. js/window -innerWidth)
                                                         :height (. js/window -innerHeight)}
+                                     :search-fn (fn [txt grid-state]
+                                                  (prn "searching for " txt)
+                                                  (filterv  (fn [row]
+                                                              (let [first-name (-> row :person/first-name )]
+                                                                (prn "fist-name" first-name)
+                                                                (not (nil? (re-find (js/RegExp. txt) first-name)))
+                                                                ))
+                                                            (:rows @grid-state))
+                                                  )
                                      :left-corner-block (fn [grid-state style]
                                                           ;; This fn should be able to merge provided
                                                           ;; styles with it's top-level node, so we

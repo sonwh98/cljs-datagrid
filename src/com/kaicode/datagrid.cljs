@@ -1,6 +1,7 @@
 (ns com.kaicode.datagrid
   (:require [com.kaicode.tily :as tily]
             [com.kaicode.teleport :as t]
+            [com.kaicode.material_girl :as mdl]
             [goog.dom :as gdom]
             [reagent.core :as r]
             [cljsjs.hammer]))
@@ -561,7 +562,25 @@
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
 
-
+(def search-box (mdl/component (fn [grid-state]
+                                 (let [id (str "search-box-" (:id @grid-state))
+                                       value (r/atom nil)]
+                                   (fn [grid-state]
+                                     [:div
+                                      [:div {:class "mdl-textfield mdl-js-textfield mdl-textfield--floating-label"}
+                                       [:input {:id id :class "mdl-textfield__input" :type "text" :value @value
+                                                :on-change (fn [evt]
+                                                             (let [v (.. evt -target -value)
+                                                                   search-fn (:search-fn @grid-state)
+                                                                   matching-rows (search-fn v grid-state)]
+                                                               (reset! value v)
+                                                               (if-not (empty? v)
+                                                                 (swap! grid-state assoc :rows matching-rows))
+                                                               )
+                                                             )}]
+                                       [:label {:class "mdl-textfield__label", :for id} "Search..."]]
+                                      [:i {:class "material-icons"
+                                           :on-click #(reset! value nil)} "clear"]])))))
 
 (defn render [grid-state]
   (r/create-class {:component-will-mount   (fn [_]
@@ -578,7 +597,8 @@
                                                                 :max-width "100%"}
                                                      :on-click #(when (-> @grid-state :context-menu :content)
                                                                   (tily/set-atom! grid-state [:context-menu :content] nil))}
-                                        ;[sticky-column-headers-foundation grid-state]
+                                               (when (:search-fn @grid-state)
+                                                 [search-box grid-state])
                                                [context-menu grid-state]
                                                [column-headers grid-state]
                                                [number-buttons-foundation grid-state]
