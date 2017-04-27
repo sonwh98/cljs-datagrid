@@ -211,7 +211,7 @@
 (defn- number-buttons-foundation
   "Creates a div that is placed underneath number buttons"
   [grid-state]
-  [:div {:style {:position         :fixed
+  [:div {:style {
                  :top              0
                  :left             0
                  :z-index          7000
@@ -292,7 +292,7 @@
                                     (fn [grid-state style]
                                       [:div {:class "mdl-button mdl-js-button mdl-button--raised"
                                              :style style}]))]
-    [:div#table-header {:style {:display :table-row}}
+    [:div {:style {:display :table-row}}
      (left-corner-block grid-state left-corner-block-style)
      (data-column-headers grid-state)]))
 
