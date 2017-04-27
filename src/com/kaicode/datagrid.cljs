@@ -564,7 +564,8 @@
 
 (def search-box (mdl/component (fn [grid-state]
                                  (let [id (str "search-box-" (:id @grid-state))
-                                       value (r/atom nil)]
+                                       value (r/atom nil)
+                                       all-rows (:rows @grid-state)]
                                    (fn [grid-state]
                                      [:div
                                       [:div {:class "mdl-textfield mdl-js-textfield mdl-textfield--floating-label"}
@@ -572,9 +573,10 @@
                                                 :on-change (fn [evt]
                                                              (let [v (.. evt -target -value)
                                                                    search-fn (:search-fn @grid-state)
-                                                                   matching-rows (search-fn v grid-state)]
+                                                                   matching-rows (search-fn v all-rows)]
                                                                (reset! value v)
-                                                               (if-not (empty? v)
+                                                               (if (empty? v)
+                                                                 (swap! grid-state assoc :rows all-rows)
                                                                  (swap! grid-state assoc :rows matching-rows))
                                                                )
                                                              )}]
