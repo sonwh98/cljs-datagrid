@@ -99,17 +99,17 @@
 
 (defn calculate-left-margins [grid-state scroll-left]
   (calc (count (remove (partial sticky-column? grid-state)
-                (get-visible-columns grid-state)))
-         (count (get-sticky-columns grid-state))
-         scroll-left))
+                       (get-visible-columns grid-state)))
+        (count (get-sticky-columns grid-state))
+        scroll-left))
 
 (defn update-left-margins [grid-state scroll-left]
   (swap! grid-state assoc :columns-config
          (vec
-           (map (fn [[column-kw column-config :as column] left-margin]
-                  (assoc-in column [1 :left-margin] left-margin))
-                (:columns-config @grid-state)
-                (calculate-left-margins grid-state scroll-left)))))
+          (map (fn [[column-kw column-config :as column] left-margin]
+                 (assoc-in column [1 :left-margin] left-margin))
+               (:columns-config @grid-state)
+               (calculate-left-margins grid-state scroll-left)))))
 
 (defn sticky-columns-refresh [grid-state]
   (let [scroll-left (.-x (gdom/getDocumentScroll))]
@@ -141,10 +141,10 @@
 
 (defn get-column-idx [grid-state column-kw]
   (first
-    (keep-indexed (fn [i [ckw _]]
-                    (when (= ckw column-kw)
-                      i))
-                    (:columns-config @grid-state))))
+   (keep-indexed (fn [i [ckw _]]
+                   (when (= ckw column-kw)
+                     i))
+                 (:columns-config @grid-state))))
 
 (defn calculate-column-header-z-index [grid-state column-kw]
   (- (if (sticky-column? grid-state column-kw)
@@ -161,39 +161,39 @@
 (defn- column-header-style [grid-state column-kw column-config]
   (let [column-width (get-column-width column-kw grid-state)]
     (merge
-      common-column-style
-      {:display       :table-cell
-       :overflow      :hidden
-       :white-space   :nowrap
-       :text-overflow :ellipsis
-       :width         column-width
-       :min-width     column-width
-       :max-width     column-width
-       :z-index       (calculate-column-header-z-index grid-state column-kw)
-       :position      :relative}
-      (when (sticky-column? grid-state column-kw)
-        {:background-color :gray})
-      (when (not= 0 (:left-margin column-config))
-        {:left (:left-margin column-config)}))))
+     common-column-style
+     {:display       :table-cell
+      :overflow      :hidden
+      :white-space   :nowrap
+      :text-overflow :ellipsis
+      :width         column-width
+      :min-width     column-width
+      :max-width     column-width
+      :z-index       (calculate-column-header-z-index grid-state column-kw)
+      :position      :relative}
+     (when (sticky-column? grid-state column-kw)
+       {:background-color :gray})
+     (when (not= 0 (:left-margin column-config))
+       {:left (:left-margin column-config)}))))
 
 (defn- record-style [grid-state column-kw column-config]
   (let [column-width (get-column-width column-kw grid-state)]
     (merge
-      common-column-style
-      {:display          :table-cell
-       :overflow         :hidden
-       :white-space      :nowrap
-       :text-overflow    :ellipsis
-       :width            column-width
-       :min-width        column-width
-       :max-width        column-width
-       :position         :relative
-       :background-color "#fff"
-       :z-index          (calculate-record-z-index grid-state column-kw)}
-      (when (sticky-column? grid-state column-kw)
-        {:background-color "#f6f6f6"})
-      (when (not= 0 (:left-margin column-config))
-        {:left (:left-margin column-config)}))))
+     common-column-style
+     {:display          :table-cell
+      :overflow         :hidden
+      :white-space      :nowrap
+      :text-overflow    :ellipsis
+      :width            column-width
+      :min-width        column-width
+      :max-width        column-width
+      :position         :relative
+      :background-color "#fff"
+      :z-index          (calculate-record-z-index grid-state column-kw)}
+     (when (sticky-column? grid-state column-kw)
+       {:background-color "#f6f6f6"})
+     (when (not= 0 (:left-margin column-config))
+       {:left (:left-margin column-config)}))))
 
 (defn- sticky-column-headers-foundation
   "Creates a div that is placed underneath sticky column headers"
@@ -269,16 +269,16 @@
                                                                    :on-click (fn [_] (mark-column-as-non-sticky grid-state column-kw))}
                                                                "non-sticky"]]
                                        (tily/set-atom! grid-state [:context-menu :content]
-                                         (cond
-                                           (can-mark-column-as-sticky? grid-state column-kw)
-                                           mark-as-sticky
-                                           
-                                           (can-mark-column-as-non-sticky? grid-state column-kw)
-                                           mark-as-non-sticky))
+                                                       (cond
+                                                         (can-mark-column-as-sticky? grid-state column-kw)
+                                                         mark-as-sticky
+                                                         
+                                                         (can-mark-column-as-non-sticky? grid-state column-kw)
+                                                         mark-as-non-sticky))
                                        (tily/set-atom! grid-state [:context-menu :coordinate] [x y]))
                                      (. evt preventDefault))}
-               header-txt
-               sort-indicator])))
+            header-txt
+            sort-indicator])))
 
 (defn- column-headers [grid-state]
   (let [left-corner-block-style {:display   :table-cell
@@ -403,17 +403,17 @@
                                               :draggable       true
                                               :class           "mdl-button mdl-js-button mdl-js-button mdl-button--raised"
                                               :style           (merge
-                                                                 {:display   :table-cell
-                                                                  :width     left-corner-block-width
-                                                                  :min-width left-corner-block-width
-                                                                  :max-width left-corner-block-width
-                                                                  :z-index   999999
-                                                                  :position :relative
-                                                                  :padding   0
-                                                                  :user-drag :element}
-                                                                 ; why is it necessary?
-                                                                 (when hoverable?
-                                                                   hover-style))
+                                                                {:display   :table-cell
+                                                                 :width     left-corner-block-width
+                                                                 :min-width left-corner-block-width
+                                                                 :max-width left-corner-block-width
+                                                                 :z-index   999999
+                                                                 :position :relative
+                                                                 :padding   0
+                                                                 :user-drag :element}
+                                        ; why is it necessary?
+                                                                (when hoverable?
+                                                                  hover-style))
                                               :on-click        #(if (tily/is-contained? i :in @selected-rows)
                                                                   (unselect-row)
                                                                   (select-row))
@@ -573,10 +573,12 @@
                                              (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render         (fn [grid-state]
                                              [:div {:style {:width (get-content-width grid-state)}}
-                                              [:div#datagrid-table {:style    {:margin-left (:scroll-left @grid-state)}
-                                                                    :on-click #(when (-> @grid-state :context-menu :content)
-                                                                                 (tily/set-atom! grid-state [:context-menu :content] nil))}
-                                               ;[sticky-column-headers-foundation grid-state]
+                                              [:div {:style    {:margin-left (:scroll-left @grid-state)
+                                                                :overflow-x :hidden
+                                                                :max-width "100%"}
+                                                     :on-click #(when (-> @grid-state :context-menu :content)
+                                                                  (tily/set-atom! grid-state [:context-menu :content] nil))}
+                                        ;[sticky-column-headers-foundation grid-state]
                                                [context-menu grid-state]
                                                [column-headers grid-state]
                                                [number-buttons-foundation grid-state]
