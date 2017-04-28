@@ -564,20 +564,26 @@
 
 (def search-box (mdl/component (fn [grid-state]
                                  (let [id (str "search-box-" (:id @grid-state))
-                                       value (r/atom nil)]
+                                       search-txt (r/cursor grid-state [:search-txt])]
                                    (fn [grid-state]
                                      [:div
                                       [:div {:class "mdl-textfield mdl-js-textfield mdl-textfield--floating-label"}
-                                       [:input {:id id :class "mdl-textfield__input" :type "text" :value @value
+                                       [:input {:id id :class "mdl-textfield__input" :type "text" :value @search-txt
                                                 :on-change (fn [evt]
                                                              (let [txt (.. evt -target -value)
                                                                    search-fn (:search-fn @grid-state)
-                                                                   matching-rows (search-fn txt)]
-                                                               (reset! value txt)
+                                                                   all-rows (-> @grid-state :all-rows)
+                                                                   matching-rows (if (empty? txt)
+                                                                                   all-rows
+                                                                                   (search-fn txt all-rows))]
+                                                               (reset! search-txt txt)
                                                                (swap! grid-state assoc :rows matching-rows)))}]
                                        [:label {:class "mdl-textfield__label", :for id} "Search..."]]
                                       [:i {:class "material-icons"
-                                           :on-click #(reset! value nil)} "clear"]])))))
+                                           :on-click (fn [evt]
+                                                       (reset! search-txt nil)
+                                                       (swap! grid-state assoc :rows (-> grid-state :all-rows))
+                                                       )} "clear"]])))))
 
 (defn render [grid-state]
   (r/create-class {:component-will-mount   (fn [_]
