@@ -582,7 +582,7 @@
                                       [:i {:class "material-icons"
                                            :on-click (fn [evt]
                                                        (reset! search-txt nil)
-                                                       (swap! grid-state assoc :rows (-> grid-state :all-rows))
+                                                       (swap! grid-state assoc :rows (-> @grid-state :all-rows))
                                                        )} "clear"]])))))
 
 (defn render [grid-state]
