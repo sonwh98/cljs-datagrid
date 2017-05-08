@@ -149,14 +149,14 @@
 
 (defn calculate-column-header-z-index [grid-state column-kw]
   (- (if (sticky-column? grid-state column-kw)
-       9900
-       5500)
+       2
+       1)
      (get-column-idx grid-state column-kw)))
 
 (defn calculate-record-z-index [grid-state column-kw]
   (- (if (sticky-column? grid-state column-kw)
-       9800
-       5400)
+       2
+       1)
      (get-column-idx grid-state column-kw)))
 
 (defn- column-header-style [grid-state column-kw column-config]
@@ -215,7 +215,7 @@
   [:div {:style {
                  :top              0
                  :left             0
-                 :z-index          7000
+                 :z-index          1
                  :background-color "#fff"
                  :width            left-corner-block-width
                  :height           "100%"}}])
@@ -259,8 +259,9 @@
                   :on-click sort-column
                   :on-context-menu (fn [evt]
                                      (let [rect   (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
-                                           x      (- (. evt -clientX) 10)
-                                           y      (+ (. evt -clientY) 5)
+                                           _ (js/console.log rect)
+                                           x      (- (. evt -clientX) 0)
+                                           y      (+ (. evt -clientY) 0)
                                            x      (- x (. rect -left))
                                            y      (- y (. rect -top))
                                            mark-as-sticky     [:a {:href     "#"
@@ -287,7 +288,7 @@
                                  :min-width left-corner-block-width
                                  :max-width left-corner-block-width
                                  :position  :relative
-                                 :z-index   9999
+                                 :z-index   1
                                  :padding   0}
         left-corner-block       (or (:left-corner-block @grid-state)
                                     (fn [grid-state style]
@@ -363,16 +364,27 @@
                                              (.. evt -nativeEvent stopImmediatePropagation))}
                              (if (tily/is-contained? i :in @expanded-rows)
                                "arrow_drop_up"
-                               "arrow_drop_down")]))]
+                               "arrow_drop_down")]))
+        calc-xy (fn [div evt]
+                  (let [rec (.. div getBoundingClientRect)
+                        x      (- (. evt -clientX)
+                                  (. rec -left))
+                        y      (- (. evt -clientY)
+                                  (. rec -top)
+                                  -100)]
+                    [x y]))]
     (r/create-class {:component-did-mount (fn [this-component]
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
                                               (.. mc (on "press" (fn [evt]
-                                                                   (let [rect (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
+                                                                   (prn "press")
+                                                                   (let [rec (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
                                                                          pointer (-> evt .-pointers tily/to-seq first)
-                                                                         x      (+ (. pointer -clientX) 20)
-                                                                         y      (+ (. pointer -clientY) 20)
-                                                                         y      (- y (. rect -top))]
+                                                                         x (- (. pointer -clientX)
+                                                                              (. rec -left))
+                                                                         y (- (. pointer -clientY)
+                                                                              (. rec -top)
+                                                                              -100)]
                                                                      (select-row)
                                                                      (if (:on-delete-rows @grid-state)
                                                                        (let [delete [:a {:href     "#"
@@ -408,7 +420,7 @@
                                                                  :width     left-corner-block-width
                                                                  :min-width left-corner-block-width
                                                                  :max-width left-corner-block-width
-                                                                 :z-index   999999
+                                                                 :z-index   2
                                                                  :position :relative
                                                                  :padding   0
                                                                  :user-drag :element}
@@ -427,11 +439,8 @@
                                                              (when on-row-drag-end
                                                                #(on-row-drag-end i grid-state)))
                                               :on-context-menu (fn [evt]
-                                                                 (let [rect   (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
-                                                                       x      (- (. evt -clientX) 10)
-                                                                       y      (+ (. evt -clientY) 5)
-                                                                       x      (- x (. rect -left))
-                                                                       y      (- y (. rect -top))]
+                                                                 (let [div (.. evt -target -parentNode -parentNode -parentNode -parentNode)
+                                                                       [x y] (calc-xy div evt)]
                                                                    (select-row)
                                                                    (if (:on-delete-rows @grid-state)
                                                                      (let [delete [:a {:href     "#"
@@ -513,7 +522,7 @@
                      :border           "1px solid grey"
                      :padding          5
                      :position         :absolute
-                     :z-index          10000
+                     :z-index          3
                      :left             (first coordinate)
                      :top              (second coordinate)}}
        content])))
@@ -536,7 +545,7 @@
               :on-click #(swap! setting-visible? (fn [old-val] (not old-val)))} "settings"]
          (when @setting-visible?
            [:div {:style {:position :absolute
-                          :z-index 11000
+                          :z-index 2
                           :top drop-down-top
                           :right 0
                           :padding 0
@@ -586,13 +595,20 @@
                                                        )} "clear"]])))))
 
 (defn render [grid-state]
-  (r/create-class {:component-will-mount   (fn [_]
-                                             (.addEventListener js/window "scroll" (fn [_]
-                                                                                     (sticky-columns-refresh grid-state)))
-                                             (tily/set-atom! grid-state [:selected-rows] #{})
-                                             (tily/set-atom! grid-state [:expanded-rows] #{})
-                                             (tily/set-atom! grid-state [:sticky-columns] #{})
-                                             (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
+  (r/create-class {:component-will-mount   (fn [this-component]
+                                             (let [this-element (r/dom-node this-component)
+                                                   parent-style this-element]
+                                               (.addEventListener js/window "scroll" (fn [_]
+                                                                                       (sticky-columns-refresh grid-state)))
+                                               (tily/set-atom! grid-state [:selected-rows] #{})
+                                               (tily/set-atom! grid-state [:expanded-rows] #{})
+                                               (tily/set-atom! grid-state [:sticky-columns] #{})
+                                               (tily/set-atom! grid-state [:id] (str (rand-int 1000)))))
+                   :component-did-mount (fn [this-component]
+                                          (let [this-element (r/dom-node this-component)]
+                                            (js/console.log "parent" (.. this-element  -style -width))
+                                            )
+                                          )
                    :reagent-render         (fn [grid-state]
                                              [:div {:style {:width (get-content-width grid-state)}}
                                               [:div {:style    {:margin-left (:scroll-left @grid-state)
