@@ -377,14 +377,9 @@
                                             (let [this-element (r/dom-node this-component)
                                                   mc (js/Hammer. this-element)]
                                               (.. mc (on "press" (fn [evt]
-                                                                   (prn "press")
-                                                                   (let [rec (.. evt -target -parentNode -parentNode -parentNode -parentNode getBoundingClientRect)
+                                                                   (let [div (..  evt -target -parentNode -parentNode -parentNode -parentNode)
                                                                          pointer (-> evt .-pointers tily/to-seq first)
-                                                                         x (- (. pointer -clientX)
-                                                                              (. rec -left))
-                                                                         y (- (. pointer -clientY)
-                                                                              (. rec -top)
-                                                                              -100)]
+                                                                         [x y] (calc-xy div pointer)]
                                                                      (select-row)
                                                                      (if (:on-delete-rows @grid-state)
                                                                        (let [delete [:a {:href     "#"
