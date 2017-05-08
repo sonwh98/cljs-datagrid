@@ -591,19 +591,12 @@
 
 (defn render [grid-state]
   (r/create-class {:component-will-mount   (fn [this-component]
-                                             (let [this-element (r/dom-node this-component)
-                                                   parent-style this-element]
-                                               (.addEventListener js/window "scroll" (fn [_]
-                                                                                       (sticky-columns-refresh grid-state)))
-                                               (tily/set-atom! grid-state [:selected-rows] #{})
-                                               (tily/set-atom! grid-state [:expanded-rows] #{})
-                                               (tily/set-atom! grid-state [:sticky-columns] #{})
-                                               (tily/set-atom! grid-state [:id] (str (rand-int 1000)))))
-                   :component-did-mount (fn [this-component]
-                                          (let [this-element (r/dom-node this-component)]
-                                            (js/console.log "parent" (.. this-element  -style -width))
-                                            )
-                                          )
+                                             (.addEventListener js/window "scroll" (fn [_]
+                                                                                     (sticky-columns-refresh grid-state)))
+                                             (tily/set-atom! grid-state [:selected-rows] #{})
+                                             (tily/set-atom! grid-state [:expanded-rows] #{})
+                                             (tily/set-atom! grid-state [:sticky-columns] #{})
+                                             (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
                    :reagent-render         (fn [grid-state]
                                              [:div {:style {:width (get-content-width grid-state)}}
                                               [:div {:style    {:margin-left (:scroll-left @grid-state)
