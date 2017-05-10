@@ -113,7 +113,6 @@
 
 (defn sticky-columns-refresh [grid-state]
   (let [scroll-left (.-x (gdom/getDocumentScroll))]
-    (prn scroll-left)
     (tily/set-atom! grid-state [:scroll-left] scroll-left)
     (update-left-margins grid-state scroll-left)))
 
@@ -124,21 +123,6 @@
 (defn- mark-column-as-non-sticky [grid-state column-kw]
   (swap! grid-state update :sticky-columns disj column-kw)
   (sticky-columns-refresh grid-state))
-
-(defn assoc-in-columns-config [grid-state column-kw ks v]
-  (swap! grid-state assoc :columns-config
-         (->> (:columns-config @grid-state)
-              (map (fn [[ckw _ :as column]]
-                     (if (= ckw column-kw)
-                       (assoc-in column (concat [1] ks) v)
-                       column)))
-              vec)))
-
-(defn get-in-columns-config [grid-state column-kw ks]
-  (some (fn [[ckw cconfig]]
-          (when (= ckw column-kw)
-            (get-in cconfig ks)))
-        (:columns-config @grid-state)))
 
 (defn get-column-idx [grid-state column-kw]
   (first
