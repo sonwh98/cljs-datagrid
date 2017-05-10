@@ -55,8 +55,8 @@
                                (extra-width-per-visible-column grid-state))]
     (js/Math.floor width)))
 
-(defn get-default-column-style [column-kw spreadsheet-state]
-  (let [column-width (get-column-width column-kw spreadsheet-state)
+(defn get-default-column-style [column-kw grid-state]
+  (let [column-width (get-column-width column-kw grid-state)
         style (merge {:width          column-width
                       :min-width      column-width
                       :max-width      column-width
