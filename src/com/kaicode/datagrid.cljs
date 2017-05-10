@@ -106,14 +106,14 @@
 
 (defn update-left-margins [grid-state scroll-left]
   (swap! grid-state assoc :columns-config
-         (vec
-          (map (fn [[column-kw column-config :as column] left-margin]
+         (mapv (fn [[column-kw column-config :as column] left-margin]
                  (assoc-in column [1 :left-margin] left-margin))
                (:columns-config @grid-state)
-               (calculate-left-margins grid-state scroll-left)))))
+               (calculate-left-margins grid-state scroll-left))))
 
 (defn sticky-columns-refresh [grid-state]
   (let [scroll-left (.-x (gdom/getDocumentScroll))]
+    (prn scroll-left)
     (tily/set-atom! grid-state [:scroll-left] scroll-left)
     (update-left-margins grid-state scroll-left)))
 
