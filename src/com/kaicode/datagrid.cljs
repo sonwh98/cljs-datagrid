@@ -388,6 +388,11 @@
                                            (tily/set-atom! grid-state [:selected-rows] #{})
                                            (tily/set-atom! grid-state [:expanded-rows] #{})
                                            (tily/set-atom! grid-state [:id] (str (rand-int 1000))))
+                   :component-did-mount (fn [this-component]
+                                          (let [this-element (r/dom-node this-component)
+                                                parent-node (.. this-element -parentNode)
+                                                parent-width (.. parent-node -offsetWidth)]
+                                            (swap! grid-state assoc-in [:window-dimension :width] parent-width)))
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
                                                                (tily/set-atom! grid-state [:context-menu :content] nil))}
