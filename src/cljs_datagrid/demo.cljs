@@ -2,8 +2,6 @@
   (:require [reagent.core :as reagent]
             [com.kaicode.datagrid :as datagrid]))
 
-(enable-console-print!)
-
 (defn init-db []
   (let [weight        (/ 1 5)
         common-config {:visible?      true
