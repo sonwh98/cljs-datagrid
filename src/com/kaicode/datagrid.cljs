@@ -1,6 +1,7 @@
 (ns com.kaicode.datagrid
   (:require [com.kaicode.tily :as tily]
             [com.kaicode.teleport :as t]
+            [com.kaicode.material_girl :as mdl]
             [reagent.core :as r]
             [cljsjs.hammer]))
 
@@ -383,6 +384,30 @@
                           :on-change #(swap! grid-state update-in [:columns-config i 1 :visible?] not)}]
                  [:span {:class "mdl-checkbox__label"} ch]]])]])]))))
 
+
+(def search-box (mdl/component (fn [grid-state]
+                                 (let [id (str "search-box-" (:id @grid-state))
+                                       search-txt (r/cursor grid-state [:search-txt])]
+                                   (fn [grid-state]
+                                     [:div
+                                      [:div {:class "mdl-textfield mdl-js-textfield mdl-textfield--floating-label"}
+                                       [:input {:id id :class "mdl-textfield__input" :type "text" :value @search-txt
+                                                :on-change (fn [evt]
+                                                             (let [txt (.. evt -target -value)
+                                                                   search-fn (:search-fn @grid-state)
+                                                                   all-rows (-> @grid-state :all-rows)
+                                                                   matching-rows (if (empty? txt)
+                                                                                   all-rows
+                                                                                   (search-fn txt all-rows))]
+                                                               (reset! search-txt txt)
+                                                               (swap! grid-state assoc :rows matching-rows)))}]
+                                       [:label {:class "mdl-textfield__label", :for id} "Search..."]]
+                                      [:i {:class "material-icons"
+                                           :on-click (fn [evt]
+                                                       (reset! search-txt nil)
+                                                       (swap! grid-state assoc :rows (-> @grid-state :all-rows))
+                                                       )} "clear"]])))))
+
 (defn render [grid-state]
   (r/create-class {:component-will-mount (fn [this-component]
                                            (tily/set-atom! grid-state [:selected-rows] #{})
@@ -398,6 +423,8 @@
                    :reagent-render       (fn [grid-state]
                                            [:div {:on-click #(when (-> @grid-state :context-menu :content)
                                                                (tily/set-atom! grid-state [:context-menu :content] nil))}
+                                            (when (:search-fn @grid-state)
+                                              [search-box grid-state])
                                             [context-menu grid-state]
                                             [column-headers grid-state]
                                             [rows grid-state]])}))
