@@ -2,6 +2,8 @@
   (:require [reagent.core :as reagent]
             [com.kaicode.datagrid :as datagrid]))
 
+(enable-console-print!)
+
 (defn init-db []
   (let [weight        (/ 1 5)
         common-config {:visible?      true
@@ -54,6 +56,7 @@
                                                                                   div-rows (js/document.getElementById (str "grid-" id "rows"))]
                                                                               (swap! grid-state update-in [:rows] conj {}))} "add"]]])
                                      :rows             people
+                                     :all-rows people
                                      :on-delete-rows   (fn [rows]
                                                          (println "deleting" rows))
                                      :columns-config   [[:person/first-name (merge common-config {:unique           true
