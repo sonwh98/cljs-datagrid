@@ -7,7 +7,7 @@
   :min-lein-version "2.6.1"
 
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [org.clojure/clojurescript "1.10.439"]
+                 [org.clojure/clojurescript "1.10.520"]
                  [reagent "0.8.1"]
 
                  [com.kaicode/teleport "0.1.1-SNAPSHOT"]
