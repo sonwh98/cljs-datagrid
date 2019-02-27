@@ -6,9 +6,9 @@
 
   :min-lein-version "2.6.1"
 
-  :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.229"]
-                 [reagent "0.6.0-rc"]
+  :dependencies [[org.clojure/clojure "1.10.0"]
+                 [org.clojure/clojurescript "1.10.439"]
+                 [reagent "0.8.1"]
 
                  [com.kaicode/teleport "0.1.1-SNAPSHOT"]
                  [com.kaicode/tily "0.1.6-SNAPSHOT"]
