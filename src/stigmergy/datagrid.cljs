@@ -1,4 +1,4 @@
-(ns com.kaicode.datagrid
+(ns stigmergy.datagrid
   (:require [com.kaicode.tily :as tily]
             [com.kaicode.teleport :as t]
             [com.kaicode.material_girl :as mdl]
